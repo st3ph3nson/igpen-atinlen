@@ -7,10 +7,11 @@
 
   <style>
     :root {
-      --bg: #0f172a; /* navy */
-      --panel: rgba(255,255,255,0.78);
-      --border: rgba(17, 24, 39, 0.18);
+      --bg: #0b132b;            /* NAVY */
+      --panel: #e5e5e5;
+      --border: rgba(0,0,0,0.2);
       --text: #111827;
+      --title: #ffffff;
     }
 
     * { box-sizing: border-box; }
@@ -30,45 +31,48 @@
       width: 100%;
     }
 
+    h1 {
+      color: var(--title);
+      margin-bottom: 12px;
+    }
+
     textarea {
       width: 100%;
       min-height: 140px;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
-      border-radius: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--panel);
       color: var(--text);
       outline: none;
     }
 
-    /* ✅ OUTPUT ONLY */
-    #output {
-      font-family: "Comic Sans MS", "Comic Sans", cursive;
-    }
-
     .row {
       display: flex;
       gap: 12px;
-      margin: 12px 0;
+      margin: 14px 0;
       flex-wrap: wrap;
       align-items: center;
     }
 
     button {
       font-size: 15px;
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,0.65);
+      background: #d1d5db;
       cursor: pointer;
+      font-weight: 600;
     }
 
     .hint {
-      opacity: 0.75;
+      opacity: 0.8;
       font-size: 13px;
-      margin-top: 8px;
-      color: #e5e7eb;
+      margin-top: 10px;
+      color: #d1d5db;
     }
   </style>
 </head>
@@ -89,7 +93,9 @@
 
   <div class="hint">
     Rules: Consonant-start words move the starting consonant cluster to the end + “en”.
-    Vowel-start words just add “en”. “I” → Ien, “Is” → Isen, “is” → isen.
+    Vowel-start words just add “en”.
+    “I” → Ien, “Is” → Isen, “is” → isen.
+    Punctuation and spacing are preserved.
   </div>
 </div>
 
@@ -117,7 +123,11 @@ function encodeLettersEN(letters) {
   for (let i = 0; i < letters.length; i++) {
     if (isVowel(letters[i], i)) { firstVowel = i; break; }
   }
-  if (firstVowel === 0 || firstVowel === -1) return letters + "en";
+
+  if (firstVowel === 0 || firstVowel === -1) {
+    return letters + "en";
+  }
+
   return letters.slice(firstVowel) + letters.slice(0, firstVowel) + "en";
 }
 
@@ -125,10 +135,14 @@ function encodeWordEN(word) {
   const style = detectCapsStyle(word);
   const lower = word.toLowerCase();
 
-  // 🔥 SPECIAL CASE: I / is
+  // SPECIAL CASE: I / is
   if (lower === "i" || lower === "is") {
-    const base = lower === "i" ? "I" : style === "title" ? "Is" : lower;
-    return base + "en";
+    const base = lower;
+    const suffix = "en";
+
+    if (style === "upper") return base.toUpperCase() + suffix;
+    if (style === "title") return base[0].toUpperCase() + base.slice(1) + suffix;
+    return base + suffix;
   }
 
   let coded = encodeLettersEN(lower);
@@ -139,20 +153,9 @@ function encodeWordEN(word) {
 }
 
 function decodeWordEN(word) {
-  const style = detectCapsStyle(word);
   const lower = word.toLowerCase();
   if (!lower.endsWith("en")) return word;
-
-  const core = lower.slice(0, -2);
-  let candidates = [core];
-  for (let k = 1; k <= Math.min(6, core.length - 1); k++) {
-    candidates.push(core.slice(-k) + core.slice(0, -k));
-  }
-
-  let plain = candidates[0];
-  if (style === "upper") return plain.toUpperCase();
-  if (style === "title") return plain[0].toUpperCase() + plain.slice(1);
-  return plain;
+  return lower.slice(0, -2);
 }
 
 function transform(text, mode) {
