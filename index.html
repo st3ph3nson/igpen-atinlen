@@ -1,1 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IZZ Pig Latin Translator</title>
+
+  <style>
+    :root {
+      --bg: #d8cbb8;
+      --panel: rgba(255,255,255,0.78);
+      --border: rgba(17, 24, 39, 0.18);
+      --text: #111827;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { overflow-x: hidden; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      margin: 24px;
+      line-height: 1.35;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      outline: none;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      font-size: 15px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+      cursor: pointer;
+    }
+
+    .hint { opacity: 0.75; font-size: 13px; margin-top: 8px; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>IZZ Pig Latin Translator</h1>
+
+  <textarea id="input" placeholder="Type English (or IZZ text) here..."></textarea>
+
+  <div class="row">
+    <button id="encode">Encode →</button>
+    <button id="decode">← Decode</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <textarea id="output" readonly></textarea>
+
+  <div class="hint">
+    Rules: Consonant-start words move the starting consonant cluster to the end + “izz” (the → ethizz, car → arcizz).
+    Vowel-start words just add “izz” (are → areizz). “I” and “is” NEVER change.
+    Punctuation and spacing are preserved. Decode uses a best-guess heuristic (Pig Latin is inherently ambiguous).
+  </div>
+</div>
+
+<script>
+/* ===== Tokenizer (keeps punctuation chunks, keeps apostrophes inside words) ===== */
+function tokenize(text) {
+  return text.match(/[A-Za-z]+(?:['’][A-Za-z]+)*|[^A-Za-z]+/g) || [];
+}
+
+/* ===== Caps detection ===== */
+function detectCapsStyle(word) {
+  if (word === word.toUpperCase()) return "upper";
+  if (
+    word[0] === word[0].toUpperCase() &&
+    word.slice(1) === word.slice(1).toLowerCase()
+  ) return "title";
+  return "lower";
+}
+
+/* ===== Apostrophe-safe helpers ===== */
+function splitApostrophes(word) {
+  const letters = [];
+  const apos = [];
+  [...word].forEach((c, i) => {
+    if (c === "'" || c === "’") apos.push({ i, c });
+    else letters.push(c);
+  });
+  return { letters: letters.join(""), apos };
+}
+
+function restoreApostrophes(word, apos) {
+  const arr = [...word];
+  apos.forEach(({ i, c }) => {
+    const idx = Math.max(0, Math.min(i, arr.length));
+    arr.splice(idx, 0, c);
+  });
+  return arr.join("");
+}
+
+/* ===== Vowel logic =====
+   - A E I O U are vowels always
+   - Y is treated like a vowel ONLY if it's not the first letter (common Pig Latin convention)
+*/
+function isVowel(ch, idx) {
+  const c = ch.toLowerCase();
+  if ("aeiou".includes(c)) return true;
+  if (c === "y" && idx > 0) return true;
+  return false;
+}
+
+/* ===== Encode (IZZ Pig Latin) ===== */
+function encodeLettersIZZ(letters) {
+  if (!letters) return letters;
+
+  const low = letters.toLowerCase();
+  if (low === "i" || low === "is") return letters; // never translate
+
+  // Find first vowel (with Y-rule)
+  let firstVowel = -1;
+  for (let i = 0; i < letters.length; i++) {
+    if (isVowel(letters[i], i)) { firstVowel = i; break; }
+  }
+
+  // If starts with vowel (or no vowel found), just add izz
+  if (firstVowel === 0 || firstVowel === -1) {
+    return letters + "izz";
+  }
+
+  // Consonant cluster move
+  const cluster = letters.slice(0, firstVowel);
+  const rest = letters.slice(firstVowel);
+  return rest + cluster + "izz";
+}
+
+function encodeWordIZZ(word) {
+  const style = detectCapsStyle(word);
+  const lower = word.toLowerCase();
+  const { letters, apos } = splitApostrophes(lower);
+  if (!letters) return word;
+
+  let codedLetters = encodeLettersIZZ(letters);
+  let coded = restoreApostrophes(codedLetters, apos);
+
+  if (style === "upper") return coded.toUpperCase();
+  if (style === "title") return coded[0].toUpperCase() + coded.slice(1);
+  return coded;
+}
+
+/* ===== Decode (best-guess) ===== */
+const COMMON = new Set([
+  "the","a","an","and","or","but","is","are","was","were","be","been","being",
+  "i","you","he","she","it","we","they","me","him","her","us","them",
+  "my","your","his","hers","our","their",
+  "to","of","in","on","at","for","from","with","as","by",
+  "this","that","these","those","not","no","yes",
+  "today","tomorrow","now","then","because",
+  "car","house","store","church","walmart","taco","falcons","game"
+]);
+
+function scoreEnglishish(w) {
+  const low = w.toLowerCase();
+  const lettersOnly = low.replace(/[^a-z]/g, "");
+  if (!lettersOnly.length) return -999;
+
+  let score = 0;
+
+  if (COMMON.has(lettersOnly)) score += 10;
+
+  const vowels = (lettersOnly.match(/[aeiouy]/g) || []).length;
+  score += vowels * 2;
+
+  if (/[^aeiouy]{5,}/.test(lettersOnly)) score -= 7;
+  if (/[jqxz]{2,}/.test(lettersOnly)) score -= 6;
+  if (/(.)\1\1/.test(lettersOnly)) score -= 3;
+
+  if (/(ing|ed|ly|tion|s)$/.test(lettersOnly)) score += 2;
+
+  return score;
+}
+
+function decodeLettersIZZ(core) {
+  if (!core) return core;
+
+  const low = core.toLowerCase();
+  if (low === "i" || low === "is") return core; // never translate
+
+  // Candidate 0: vowel-start original (just remove izz)
+  const candidates = [{ w: core, why: "vowel/no-move" }];
+
+  // Candidates: move last k letters to front (k=1..6, bounded)
+  const maxK = Math.min(6, core.length - 1);
+  for (let k = 1; k <= maxK; k++) {
+    const cand = core.slice(-k) + core.slice(0, -k);
+    candidates.push({ w: cand, why: `move-${k}` });
+  }
+
+  // Pick best by score
+  let best = candidates[0];
+  let bestScore = scoreEnglishish(best.w);
+
+  for (let i = 1; i < candidates.length; i++) {
+    const sc = scoreEnglishish(candidates[i].w);
+    if (sc > bestScore) {
+      bestScore = sc;
+      best = candidates[i];
+    }
+  }
+
+  return best.w;
+}
+
+function decodeWordIZZ(word) {
+  const style = detectCapsStyle(word);
+  const lower = word.toLowerCase();
+
+  // If it's literally "i" or "is" (any case), keep it
+  if (lower === "i" || lower === "is") return word;
+
+  // Must end with "izz" to decode
+  if (!lower.endsWith("izz")) return word;
+
+  const stripped = lower.slice(0, -3); // remove izz
+  const { letters, apos } = splitApostrophes(stripped);
+  if (!letters) return word;
+
+  let plainLetters = decodeLettersIZZ(letters);
+  let plain = restoreApostrophes(plainLetters, apos);
+
+  if (style === "upper") return plain.toUpperCase();
+  if (style === "title") return plain[0].toUpperCase() + plain.slice(1);
+  return plain;
+}
+
+/* ===== Transform ===== */
+function transform(text, mode) {
+  return tokenize(text).map(tok => {
+    if (/^[A-Za-z]/.test(tok)) {
+      return mode === "encode" ? encodeWordIZZ(tok) : decodeWordIZZ(tok);
+    }
+    return tok;
+  }).join("");
+}
+
+/* ===== UI ===== */
+const inputEl = document.getElementById("input");
+const outputEl = document.getElementById("output");
+
+document.getElementById("encode").onclick = () => {
+  outputEl.value = transform(inputEl.value, "encode");
+};
+
+document.getElementById("decode").onclick = () => {
+  outputEl.value = transform(inputEl.value, "decode");
+};
+
+document.getElementById("clear").onclick = () => {
+  inputEl.value = "";
+  outputEl.value = "";
+  inputEl.focus();
+};
+</script>
+</body>
+</html>
 
