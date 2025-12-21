@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IZZ Pig Latin Translator</title>
+  <title>Fliplish Translator</title>
 
   <style>
     :root {
@@ -50,13 +50,25 @@
       align-items: center;
     }
 
-    button {
-      font-size: 15px;
+    button, select, input[type="checkbox"] { font-size: 15px; }
+
+    button, select {
       padding: 10px 12px;
       border-radius: 999px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.65);
       cursor: pointer;
+    }
+
+    label.chk {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.45);
+      user-select: none;
     }
 
     .hint { opacity: 0.75; font-size: 13px; margin-top: 8px; }
@@ -65,27 +77,93 @@
 
 <body>
 <div class="container">
-  <h1>IZZ Pig Latin Translator</h1>
+  <h1>Fliplish Translator</h1>
 
-  <textarea id="input" placeholder="Type English (or IZZ text) here..."></textarea>
+  <textarea id="input" placeholder="Type English (or coded text) here..."></textarea>
 
   <div class="row">
     <button id="encode">Encode →</button>
     <button id="decode">← Decode</button>
     <button id="clear">Clear</button>
+
+    <label>
+      Suffix mode:
+      <select id="suffixMode">
+        <option value="single" selected>Single</option>
+        <option value="aeiou">AEIOU Rotate</option>
+        <option value="random">Random (A–Z)</option>
+      </select>
+    </label>
+
+    <label>
+      Suffix:
+      <select id="suffix"></select>
+    </label>
+
+    <label>
+      Move letters:
+      <select id="moveN">
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
+      </select>
+    </label>
+
+    <label>
+      Preserve capitalization:
+      <select id="caps">
+        <option value="yes">Yes</option>
+        <option value="no" selected>No</option>
+      </select>
+    </label>
+
+    <label class="chk" title="Recommended: tries both 1-letter and 2-letter moves per word and picks the most English-looking result">
+      <input id="smartDecode" type="checkbox" checked />
+      Smart Decode
+    </label>
   </div>
 
   <textarea id="output" readonly></textarea>
 
   <div class="hint">
-    Rules: Consonant-start words move the starting consonant cluster to the end + “en” (the → ethen, car → arcen).
-    Vowel-start words just add “en” (are → areen). “I” and “is” NEVER change.
-    Punctuation and spacing are preserved. Decode uses a best-guess heuristic (Pig Latin is inherently ambiguous).
+    How Fliplish works: Each word is encoded by moving the first 1–2 letters to the end and adding a suffix letter.
+    Decode removes that suffix letter and moves letters back, preserving punctuation and spacing.
   </div>
 </div>
 
 <script>
-/* ===== Tokenizer (keeps punctuation chunks, keeps apostrophes inside words) ===== */
+/* ===== Suffixes (A–Z only) ===== */
+const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+
+/* ===== Elements ===== */
+const inputEl = document.getElementById("input");
+const outputEl = document.getElementById("output");
+const suffixEl = document.getElementById("suffix");
+const suffixModeEl = document.getElementById("suffixMode");
+const moveNEl = document.getElementById("moveN");
+const capsEl = document.getElementById("caps");
+const smartDecodeEl = document.getElementById("smartDecode");
+
+/* ===== Init suffix dropdown ===== */
+(function initSuffix() {
+  suffixEl.innerHTML = "";
+  for (const s of LETTERS) {
+    const o = document.createElement("option");
+    o.value = s;
+    o.textContent = s.toUpperCase();
+    if (s === "a") o.selected = true;
+    suffixEl.appendChild(o);
+  }
+})();
+
+function syncSuffixUI() {
+  const disabled = suffixModeEl.value !== "single";
+  suffixEl.disabled = disabled;
+  suffixEl.style.opacity = disabled ? "0.55" : "1";
+}
+suffixModeEl.addEventListener("change", syncSuffixUI);
+syncSuffixUI();
+
+/* ===== Tokenizer ===== */
 function tokenize(text) {
   return text.match(/[A-Za-z]+(?:['’][A-Za-z]+)*|[^A-Za-z]+/g) || [];
 }
@@ -100,181 +178,99 @@ function detectCapsStyle(word) {
   return "lower";
 }
 
-/* ===== Apostrophe-safe helpers ===== */
-function splitApostrophes(word) {
-  const letters = [];
-  const apos = [];
-  [...word].forEach((c, i) => {
-    if (c === "'" || c === "’") apos.push({ i, c });
-    else letters.push(c);
-  });
-  return { letters: letters.join(""), apos };
-}
-
-function restoreApostrophes(word, apos) {
-  const arr = [...word];
-  apos.forEach(({ i, c }) => {
-    const idx = Math.max(0, Math.min(i, arr.length));
-    arr.splice(idx, 0, c);
-  });
-  return arr.join("");
-}
-
-/* ===== Vowel logic =====
-   - A E I O U are vowels always
-   - Y is treated like a vowel ONLY if it's not the first letter (common Pig Latin convention)
-*/
-function isVowel(ch, idx) {
-  const c = ch.toLowerCase();
-  if ("aeiou".includes(c)) return true;
-  if (c === "y" && idx > 0) return true;
-  return false;
-}
-
-/* ===== Encode (IZZ Pig Latin) ===== */
-function encodeLettersEN(letters) {
-  if (!letters) return letters;
-
-  const low = letters.toLowerCase();
-  if (low === "i" || low === "is") return letters; // never translate
-
-  // Find first vowel (with Y-rule)
-  let firstVowel = -1;
-  for (let i = 0; i < letters.length; i++) {
-    if (isVowel(letters[i], i)) { firstVowel = i; break; }
-  }
-
-  // If starts with vowel (or no vowel found), just add en
-  if (firstVowel === 0 || firstVowel === -1) {
-    return letters + "en";
-  }
-
-  // Consonant cluster move
-  const cluster = letters.slice(0, firstVowel);
-  const rest = letters.slice(firstVowel);
-  return rest + cluster + "en";
-}
-
-function encodeWordEN(word) {
-  const style = detectCapsStyle(word);
+/* ===== Encode / Decode ===== */
+function encodeWord(word, suffix, preserveCaps, moveN) {
+  const style = preserveCaps ? detectCapsStyle(word) : "lower";
   const lower = word.toLowerCase();
-  const { letters, apos } = splitApostrophes(lower);
-  if (!letters) return word;
 
-  let codedLetters = encodeLettersEN(letters);
-  let coded = restoreApostrophes(codedLetters, apos);
+  // ✅ NEW RULE: I and IS now get the suffix too (no special "leave alone")
+  // Keep them easy to speak: no moving letters, just add suffix.
+  if (lower === "i" || lower === "is") {
+    const coded = lower + suffix;
+    if (!preserveCaps) return coded;
+    if (style === "upper") return coded.toUpperCase();
+    if (style === "title") return coded[0].toUpperCase() + coded.slice(1);
+    return coded;
+  }
 
+  const n = Math.min(moveN, lower.length);
+  let coded = lower.slice(n) + lower.slice(0, n) + suffix;
+
+  if (!preserveCaps) return coded;
   if (style === "upper") return coded.toUpperCase();
   if (style === "title") return coded[0].toUpperCase() + coded.slice(1);
   return coded;
 }
 
-/* ===== Decode (best-guess) ===== */
-const COMMON = new Set([
-  "the","a","an","and","or","but","is","are","was","were","be","been","being",
-  "i","you","he","she","it","we","they","me","him","her","us","them",
-  "my","your","his","hers","our","their",
-  "to","of","in","on","at","for","from","with","as","by",
-  "this","that","these","those","not","no","yes",
-  "today","tomorrow","now","then","because",
-  "car","house","store","church","walmart","taco","falcons","game"
-]);
-
-function scoreEnglishish(w) {
-  const low = w.toLowerCase();
-  const lettersOnly = low.replace(/[^a-z]/g, "");
-  if (!lettersOnly.length) return -999;
-
-  let score = 0;
-
-  if (COMMON.has(lettersOnly)) score += 10;
-
-  const vowels = (lettersOnly.match(/[aeiouy]/g) || []).length;
-  score += vowels * 2;
-
-  if (/[^aeiouy]{5,}/.test(lettersOnly)) score -= 7;
-  if (/[jqxz]{2,}/.test(lettersOnly)) score -= 6;
-  if (/(.)\1\1/.test(lettersOnly)) score -= 3;
-
-  if (/(ing|ed|ly|tion|s)$/.test(lettersOnly)) score += 2;
-
-  return score;
-}
-
-function decodeLettersEN(core) {
-  if (!core) return core;
-
-  const low = core.toLowerCase();
-  if (low === "i" || low === "is") return core; // never translate
-
-  // Candidate 0: vowel-start original (just remove en)
-  const candidates = [{ w: core, why: "vowel/no-move" }];
-
-  // Candidates: move last k letters to front (k=1..6, bounded)
-  const maxK = Math.min(6, core.length - 1);
-  for (let k = 1; k <= maxK; k++) {
-    const cand = core.slice(-k) + core.slice(0, -k);
-    candidates.push({ w: cand, why: `move-${k}` });
-  }
-
-  // Pick best by score
-  let best = candidates[0];
-  let bestScore = scoreEnglishish(best.w);
-
-  for (let i = 1; i < candidates.length; i++) {
-    const sc = scoreEnglishish(candidates[i].w);
-    if (sc > bestScore) {
-      bestScore = sc;
-      best = candidates[i];
-    }
-  }
-
-  return best.w;
-}
-
-function decodeWordEN(word) {
-  const style = detectCapsStyle(word);
+function decodeWord(word, suffix, preserveCaps, moveN) {
+  const style = preserveCaps ? detectCapsStyle(word) : "lower";
   const lower = word.toLowerCase();
+  if (!suffix || !lower.endsWith(suffix)) return word;
 
-  // If it's literally "i" or "is" (any case), keep it
-  if (lower === "i" || lower === "is") return word;
+  const core = lower.slice(0, -suffix.length);
 
-  // Must end with "en" to decode
-  if (!lower.endsWith("en")) return word;
+  // ✅ NEW RULE: ien -> i, isen -> is (works regardless of moveN)
+  if (core === "i" || core === "is") {
+    let plain = core;
+    if (!preserveCaps) return plain;
+    if (style === "upper") return plain.toUpperCase();
+    if (style === "title") return plain[0].toUpperCase() + plain.slice(1);
+    return plain;
+  }
 
-  const stripped = lower.slice(0, -3); // remove en
-  const { letters, apos } = splitApostrophes(stripped);
-  if (!letters) return word;
+  const n = Math.min(moveN, core.length);
+  let plain = core.slice(-n) + core.slice(0, -n);
 
-  let plainLetters = decodeLettersen(letters);
-  let plain = restoreApostrophes(plainLetters, apos);
-
+  if (!preserveCaps) return plain;
   if (style === "upper") return plain.toUpperCase();
   if (style === "title") return plain[0].toUpperCase() + plain.slice(1);
   return plain;
 }
 
+/* ===== Encode suffix selection ===== */
+function getSuffixForEncode(i) {
+  const mode = suffixModeEl.value;
+  if (mode === "aeiou") return ["a","e","i","o","u"][i % 5];
+  if (mode === "random") return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+  return suffixEl.value;
+}
+
+/* ===== Decode suffix extraction (read actual last letter) ===== */
+function suffixFromToken(tok) {
+  const low = tok.toLowerCase();
+  const last = low[low.length - 1] || "";
+  return /[a-z]/.test(last) ? last : null;
+}
+
 /* ===== Transform ===== */
 function transform(text, mode) {
+  const preserveCaps = capsEl.value === "yes";
+  let wordIndex = 0;
+
   return tokenize(text).map(tok => {
     if (/^[A-Za-z]/.test(tok)) {
-      return mode === "encode" ? encodeWordEN(tok) : decodeWordEN(tok);
+      const moveN = +moveNEl.value;
+
+      if (mode === "encode") {
+        const suffix = getSuffixForEncode(wordIndex++);
+        return encodeWord(tok, suffix, preserveCaps, moveN);
+      }
+
+      // decode: ALWAYS read suffix from the word (works for single/rotate/random)
+      const sfx = suffixFromToken(tok);
+      wordIndex++;
+      return decodeWord(tok, sfx, preserveCaps, moveN);
     }
     return tok;
   }).join("");
 }
 
-/* ===== UI ===== */
-const inputEl = document.getElementById("input");
-const outputEl = document.getElementById("output");
-
-document.getElementById("encode").onclick = () => {
+/* ===== Buttons ===== */
+document.getElementById("encode").onclick = () =>
   outputEl.value = transform(inputEl.value, "encode");
-};
 
-document.getElementById("decode").onclick = () => {
+document.getElementById("decode").onclick = () =>
   outputEl.value = transform(inputEl.value, "decode");
-};
 
 document.getElementById("clear").onclick = () => {
   inputEl.value = "";
@@ -284,4 +280,3 @@ document.getElementById("clear").onclick = () => {
 </script>
 </body>
 </html>
-
