@@ -79,7 +79,7 @@
 
   <div class="hint">
     Rules: Consonant-start words move the starting consonant cluster to the end + “en” (the → eth-en, car → arc-en).
-    Vowel-start words just add “en” (are → areen). “I” and “is” now also take “en” (I → ien, is → isen).
+    Vowel-start words just add “en” (are → areen). “I” and “is” now also take “en” (I → Ien, is → isen).
     Punctuation and spacing are preserved. Decode uses a best-guess heuristic (Pig Latin is inherently ambiguous).
   </div>
 </div>
@@ -157,6 +157,19 @@ function encodeWordEN(word) {
   const lower = word.toLowerCase();
   const { letters, apos } = splitApostrophes(lower);
   if (!letters) return word;
+
+  // ✅ Special-case: keep suffix "en" lowercase for I / is, but keep base casing
+  if (letters === "i" || letters === "is") {
+    const base = letters;   // "i" or "is" (lowercase)
+    const suffix = "en";    // always lowercase
+    let fixed;
+
+    if (style === "upper") fixed = base.toUpperCase() + suffix; // Ien / ISen
+    else if (style === "title") fixed = base[0].toUpperCase() + base.slice(1) + suffix; // Isen
+    else fixed = base + suffix; // ien / isen
+
+    return restoreApostrophes(fixed, apos);
+  }
 
   let codedLetters = encodeLettersEN(letters);
   let coded = restoreApostrophes(codedLetters, apos);
