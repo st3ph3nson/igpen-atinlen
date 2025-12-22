@@ -82,19 +82,17 @@
 <div class="container">
   <h1 id="title">UM Pig Latin Translator</h1>
 
-  <textarea id="input" placeholder="Type English (or UM Pig Latin) here..."></textarea>
+  <textarea id="input" placeholder="Type English here..."></textarea>
 
   <div class="row">
     <button id="encode">Encode →</button>
-    <button id="decode">← Decode</button>
     <button id="clear">Clear</button>
   </div>
 
-  <textarea id="output" readonly></textarea>
+  <textarea id="output" readonly placeholder="UM Pig Latin output..."></textarea>
 
   <div class="hint" id="hint">
-    Rules: vowel-start words add “um” (apple → appleum). Consonant-start words move the starting consonant cluster to the end + “um” (the → ethum, work → orkwum).
-    Punctuation and spacing are preserved. Decode uses a best-guess heuristic (Pig Latin is inherently ambiguous).
+    Rules: vowel-start words add “um” (apple → appleum). Consonant-start words move the starting consonant cluster to the end + “um” (the → ethum, work → orkwum). Punctuation and spacing are preserved.
   </div>
 </div>
 
@@ -107,10 +105,7 @@ function tokenize(text) {
 /* ===== Caps detection ===== */
 function detectCapsStyle(word) {
   if (word === word.toUpperCase()) return "upper";
-  if (
-    word[0] === word[0].toUpperCase() &&
-    word.slice(1) === word.slice(1).toLowerCase()
-  ) return "title";
+  if (word[0] === word[0].toUpperCase() && word.slice(1) === word.slice(1).toLowerCase()) return "title";
   return "lower";
 }
 
@@ -183,84 +178,10 @@ function encodeWordUM(word) {
   return applyCasing(coded, style);
 }
 
-/* ===== Decode heuristic (UM Pig Latin is ambiguous) ===== */
-const COMMON = new Set([
-  "the","a","an","and","or","but","is","are","was","were","be","been","being",
-  "i","you","he","she","it","we","they","me","him","her","us","them",
-  "my","your","his","hers","our","their",
-  "to","of","in","on","at","for","from","with","as","by",
-  "this","that","these","those","not","no","yes",
-  "today","tomorrow","now","then","because",
-  "car","house","store","work","walmart","game","sleep","white","black","lunch","coffee"
-]);
-
-function scoreEnglishish(w) {
-  const low = w.toLowerCase().replace(/[^a-z]/g, "");
-  if (!low.length) return -999;
-
-  let score = 0;
-  if (COMMON.has(low)) score += 12;
-
-  const vowels = (low.match(/[aeiouy]/g) || []).length;
-  score += vowels * 2;
-
-  if (/[^aeiouy]{5,}/.test(low)) score -= 7;
-  if (/(.)\1\1/.test(low)) score -= 3;
-  if (/(ing|ed|ly|tion|s)$/.test(low)) score += 2;
-
-  // tiny bonus if it starts with a consonant OR vowel in a plausible way (light touch)
-  if (/^[a-z]/.test(low)) score += 1;
-
-  return score;
-}
-
-// For consonant-start words, decoding is: remove "um", then move last k letters to front.
-// We try k=0..6 and pick best by scoring. (k=0 handles vowel-start originals.)
-function bestDecodeCore(core) {
-  if (!core) return core;
-
-  const candidates = [{ w: core }]; // k=0
-  const maxK = Math.min(6, Math.max(0, core.length - 1));
-
-  for (let k = 1; k <= maxK; k++) {
-    candidates.push({ w: core.slice(-k) + core.slice(0, -k) });
-  }
-
-  let best = candidates[0].w;
-  let bestScore = scoreEnglishish(best);
-
-  for (let i = 1; i < candidates.length; i++) {
-    const sc = scoreEnglishish(candidates[i].w);
-    if (sc > bestScore) {
-      bestScore = sc;
-      best = candidates[i].w;
-    }
-  }
-  return best;
-}
-
-function decodeWordUM(word) {
-  const style = detectCapsStyle(word);
-  const lower = word.toLowerCase();
-
-  if (!lower.endsWith("um")) return word;
-
-  const stripped = lower.slice(0, -2); // remove "um"
-  const { letters, apos } = splitApostrophes(stripped);
-  if (!letters) return word;
-
-  const plainLetters = bestDecodeCore(letters);
-  const plain = restoreApostrophes(plainLetters, apos);
-
-  return applyCasing(plain, style);
-}
-
-/* ===== Transform ===== */
-function transform(text, dir) {
+/* ===== Transform (encode only) ===== */
+function encodeTextUM(text) {
   return tokenize(text).map(tok => {
-    if (/^[A-Za-z]/.test(tok)) {
-      return dir === "encode" ? encodeWordUM(tok) : decodeWordUM(tok);
-    }
+    if (/^[A-Za-z]/.test(tok)) return encodeWordUM(tok);
     return tok;
   }).join("");
 }
@@ -270,11 +191,7 @@ const inputEl = document.getElementById("input");
 const outputEl = document.getElementById("output");
 
 document.getElementById("encode").onclick = () => {
-  outputEl.value = transform(inputEl.value, "encode");
-};
-
-document.getElementById("decode").onclick = () => {
-  outputEl.value = transform(inputEl.value, "decode");
+  outputEl.value = encodeTextUM(inputEl.value);
 };
 
 document.getElementById("clear").onclick = () => {
