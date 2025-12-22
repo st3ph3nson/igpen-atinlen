@@ -98,11 +98,10 @@
     <button id="clear">Clear</button>
 
     <label>
-      Mode:
+      Ending:
       <select id="mode">
         <option value="en" selected>EN (…en)</option>
-        <option value="eg">EG (…eg)</option>
-        <option value="std">Standard (…ay / …yay)</option>
+        <option value="um">UM (…um)</option>
       </select>
     </label>
   </div>
@@ -143,22 +142,16 @@ function firstVowelIndex(letters) {
   return -1;
 }
 
-/* ===== Encoder core ===== */
-function encodeLetters(letters, mode) {
+/* ===== Encoder core (EN / UM) ===== */
+function encodeLetters(letters, suffix) {
   if (!letters) return letters;
+
   const fv = firstVowelIndex(letters);
 
-  if (mode === "std") {
-    // Standard Pig Latin:
-    // vowel-start => + "yay"
-    // consonant-start => move cluster + "ay"
-    if (fv === 0 || fv === -1) return letters + "yay";
-    return letters.slice(fv) + letters.slice(0, fv) + "ay";
-  }
-
-  // EN / EG modes:
-  const suffix = (mode === "eg") ? "eg" : "en";
+  // vowel-start (or no vowel found) => just add suffix
   if (fv === 0 || fv === -1) return letters + suffix;
+
+  // consonant-start => move consonant cluster to end + suffix
   return letters.slice(fv) + letters.slice(0, fv) + suffix;
 }
 
@@ -171,17 +164,20 @@ function applyCasing(codedLower, style) {
 function encodeWord(word, mode) {
   const style = detectCapsStyle(word);
   const lower = word.toLowerCase();
+  const suffix = (mode === "um") ? "um" : "en";
 
-  // Special-case for EN/EG: keep "I" capitalized, suffix lowercase
-  // I -> Ien / Ieg ; Is -> Isen / Iseg ; is -> isen / iseg
-  if (mode !== "std" && (lower === "i" || lower === "is")) {
-    const suffix = (mode === "eg") ? "eg" : "en";
-    if (style === "upper") return lower.toUpperCase() + suffix;                // Ien / ISen / Ieg / ISeg
-    if (style === "title") return lower[0].toUpperCase() + lower.slice(1) + suffix; // Isen / Iseg
-    return lower + suffix;                                                     // ien / isen / ieg / iseg
+  // Special-case: keep base casing for I / is, but suffix ALWAYS lowercase
+  // I -> Ien / Ium
+  // Is -> Isen / Isum
+  // is -> isen / isum
+  if (lower === "i" || lower === "is") {
+    const base = lower;   // "i" or "is" in lowercase
+    if (style === "upper") return base.toUpperCase() + suffix; // Ien / ISen / Ium / ISum
+    if (style === "title") return base[0].toUpperCase() + base.slice(1) + suffix; // Isen / Isum
+    return base + suffix; // ien / isen / ium / isum
   }
 
-  const codedLower = encodeLetters(lower, mode);
+  const codedLower = encodeLetters(lower, suffix);
   return applyCasing(codedLower, style);
 }
 
@@ -193,12 +189,13 @@ const COMMON = new Set([
   "to","of","in","on","at","for","from","with","as","by",
   "this","that","these","those","not","no","yes",
   "today","tomorrow","now","then","because",
-  "car","house","store","work","walmart","game"
+  "car","house","store","work","walmart","game","sleep","white","black"
 ]);
 
 function scoreEnglishish(w) {
   const low = w.toLowerCase().replace(/[^a-z]/g, "");
   if (!low.length) return -999;
+
   let score = 0;
   if (COMMON.has(low)) score += 10;
   score += (low.match(/[aeiouy]/g) || []).length * 2;
@@ -210,9 +207,10 @@ function scoreEnglishish(w) {
 
 function bestUnrotate(core) {
   if (!core) return core;
-  const candidates = [{ w: core }];
 
+  const candidates = [{ w: core }];
   const maxK = Math.min(6, core.length - 1);
+
   for (let k = 1; k <= maxK; k++) {
     candidates.push({ w: core.slice(-k) + core.slice(0, -k) });
   }
@@ -233,29 +231,12 @@ function bestUnrotate(core) {
 function decodeWord(word, mode) {
   const style = detectCapsStyle(word);
   const lower = word.toLowerCase();
+  const suffix = (mode === "um") ? "um" : "en";
 
-  // Determine suffix(es) for the selected mode
-  let suffixes;
-  if (mode === "std") suffixes = ["yay", "ay"];
-  else suffixes = [(mode === "eg") ? "eg" : "en"];
+  if (!lower.endsWith(suffix)) return word;
 
-  // Find which suffix matches
-  let matched = null;
-  for (const s of suffixes) {
-    if (lower.endsWith(s)) { matched = s; break; }
-  }
-  if (!matched) return word;
-
-  const stripped = lower.slice(0, -matched.length);
-
-  // For vowel-start in standard mode, removing "yay" is enough.
-  // For everything else, try to unrotate (heuristic).
-  let plainLower;
-  if (mode === "std" && matched === "yay") {
-    plainLower = stripped;
-  } else {
-    plainLower = bestUnrotate(stripped);
-  }
+  const stripped = lower.slice(0, -suffix.length);
+  const plainLower = bestUnrotate(stripped);
 
   return applyCasing(plainLower, style);
 }
@@ -278,16 +259,12 @@ const hintEl = document.getElementById("hint");
 
 function renderHint() {
   const mode = modeEl.value;
-  if (mode === "std") {
-    hintEl.textContent =
-      'Mode: Standard Pig Latin — vowel-start + "yay" (I → iyay), consonant-start move cluster + "ay" (house → ousehay, going → oinggay).';
-  } else if (mode === "eg") {
-    hintEl.textContent =
-      'Mode: EG — vowel-start + "eg" (are → areeg), consonant-start move cluster + "eg" (the → etheg, work → orkw eg). I/Is keep their normal caps + "eg" (I → Ieg, Is → Iseg, is → iseg).';
-  } else {
-    hintEl.textContent =
-      'Mode: EN — vowel-start + "en" (are → areen), consonant-start move cluster + "en" (the → ethen). I/Is keep their normal caps + "en" (I → Ien, Is → Isen, is → isen).';
-  }
+  const suffix = (mode === "um") ? "um" : "en";
+  hintEl.textContent =
+    `Rules: consonant-start words move the starting consonant cluster to the end + “${suffix}” (the → eth${suffix}, work → orkw${suffix}). ` +
+    `vowel-start words just add “${suffix}” (are → are${suffix}). ` +
+    `Special casing: “I” → I${suffix}, “Is” → Is${suffix}, “is” → is${suffix}. ` +
+    `Punctuation and spacing are preserved. Decode uses a best-guess heuristic.`;
 }
 
 modeEl.addEventListener("change", renderHint);
