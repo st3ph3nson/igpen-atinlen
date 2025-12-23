@@ -321,40 +321,59 @@
     }
 
     function translateText(text, mode, keepCaps, dotSep, pipeSep){
-      let i = 0;
-      let out = "";
-      let atWordStart = true;
+  let i = 0;
+  let out = "";
 
-      while (i < text.length){
-        const ch = text[i];
+  let lastWasWord = false;
+  let pendingWS = ""; // whitespace waiting between tokens (spaces/newlines/tabs)
 
-        if (isLetter(ch)){
-          let j = i;
-          while (j < text.length && isLetter(text[j])) j++;
-          const word = text.slice(i, j);
+  while (i < text.length){
+    const ch = text[i];
 
-          const translated = translateWord(word, mode, keepCaps, dotSep);
+    // WORD (letter-run)
+    if (isLetter(ch)){
+      let j = i;
+      while (j < text.length && isLetter(text[j])) j++;
+      const word = text.slice(i, j);
+      const translated = translateWord(word, mode, keepCaps, dotSep);
 
-          if (!atWordStart){
-            out += pipeSep ? " | " : " ";
-          }
-          out += translated;
-
-          atWordStart = false;
-          i = j;
+      if (lastWasWord){
+        if (pipeSep && pendingWS.length){
+          out += " | ";
         } else {
-          // Preserve punctuation/spaces exactly
-          out += ch;
-
-          // If we hit whitespace or punctuation, next letter-run starts a new "word slot"
-          // so we don't accidentally add an extra separator after commas/periods.
-          if (!isLetter(ch)) atWordStart = true;
-
-          i++;
+          out += pendingWS; // keep original spacing if pipes aren't on
         }
+      } else {
+        out += pendingWS; // leading whitespace, keep it
       }
-      return out;
+
+      out += translated;
+
+      pendingWS = "";
+      lastWasWord = true;
+      i = j;
+      continue;
     }
+
+    // NON-WORD
+    if (/\s/.test(ch)){
+      // whitespace: hold it (so we can replace it with " | " if needed)
+      pendingWS += ch;
+      i++;
+      continue;
+    }
+
+    // punctuation/symbol: output immediately, then keep any pending whitespace AFTER it
+    out += pendingWS + ch;
+    pendingWS = "";
+    // NOTE: we do NOT set lastWasWord=false here, because punctuation can follow a word
+    i++;
+  }
+
+  // flush any trailing whitespace
+  out += pendingWS;
+  return out;
+}
 
     function renderMapBox(){
       const lines = [];
