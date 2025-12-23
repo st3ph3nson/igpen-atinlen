@@ -23,34 +23,14 @@
       color: var(--text);
       padding: 24px;
     }
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-    }
-    header{
-      color:#fff;
-      margin-bottom: 16px;
-    }
-    header h1{
-      margin:0 0 6px 0;
-      font-size: 22px;
-      letter-spacing: .3px;
-      font-weight: 750;
-    }
-    header p{
-      margin:0;
-      color: rgba(255,255,255,0.75);
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    @media (min-width: 900px){
-      .grid{ grid-template-columns: 1fr 1fr; }
-    }
+    .wrap{ max-width: 980px; margin: 0 auto; }
+    header{ color:#fff; margin-bottom: 16px; }
+    header h1{ margin:0 0 6px 0; font-size: 22px; letter-spacing: .3px; font-weight: 750; }
+    header p{ margin:0; color: rgba(255,255,255,0.75); font-size: 14px; line-height: 1.4; }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 900px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
     .card{
       background: var(--card);
       border: 1px solid var(--border);
@@ -58,12 +38,8 @@
       padding: 14px;
       box-shadow: 0 18px 45px rgba(0,0,0,0.18);
     }
-    label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+    label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
     textarea{
       width:100%;
       min-height: 210px;
@@ -79,6 +55,7 @@
       border-color: rgba(56,189,248,.65);
       box-shadow: 0 0 0 3px rgba(56,189,248,.22);
     }
+
     .controls{
       display:flex;
       flex-wrap:wrap;
@@ -97,6 +74,7 @@
       font-size: 13px;
     }
     .pill input{ transform: translateY(1px); }
+
     button{
       appearance:none;
       border: 1px solid var(--border);
@@ -111,12 +89,14 @@
       border-color: rgba(56,189,248,.75);
       box-shadow: 0 0 0 3px rgba(56,189,248,.18);
     }
+
     .small{
       font-size: 12px;
       color: var(--muted);
       margin-top: 10px;
       line-height: 1.35;
     }
+
     .mapbox{
       margin-top: 10px;
       padding: 10px;
@@ -131,7 +111,6 @@
       max-height: 220px;
     }
 
-    /* ✅ Collapsible mapping section */
     details.mapping-details{
       margin-top: 10px;
       border-top: 1px solid rgba(15,23,42,0.08);
@@ -151,18 +130,14 @@
       border: 1px solid var(--border);
       background: #fff;
     }
-    details.mapping-details > summary::-webkit-details-marker{
-      display:none;
-    }
+    details.mapping-details > summary::-webkit-details-marker{ display:none; }
     details.mapping-details > summary::before{
       content: "▸";
       font-size: 12px;
       opacity: 0.9;
       transform: translateY(-0.5px);
     }
-    details.mapping-details[open] > summary::before{
-      content: "▾";
-    }
+    details.mapping-details[open] > summary::before{ content: "▾"; }
     details.mapping-details > summary:hover{
       border-color: rgba(56,189,248,.75);
       box-shadow: 0 0 0 3px rgba(56,189,248,.18);
@@ -173,8 +148,8 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Soft Argot Translator</h1>
-      <p>Consonants become your syllables; vowels (A E I O U) stay normal. Punctuation preserved. Choose spaced (learning) or fused (fluent).</p>
+      <h1>Argot Translator</h1>
+      <p>Consonants become your syllables. Toggle whether vowels pass through normally or become -p syllables. Punctuation preserved.</p>
     </header>
 
     <div class="grid">
@@ -204,6 +179,11 @@
           </div>
 
           <div class="pill">
+            <input type="checkbox" id="vowelPMode">
+            <label for="vowelPMode" style="margin:0;color:inherit;">Vowels → -p (ap/ep/ip/op/up)</label>
+          </div>
+
+          <div class="pill">
             <input type="checkbox" id="preserveCaps" checked>
             <label for="preserveCaps" style="margin:0;color:inherit;">Preserve capitalization</label>
           </div>
@@ -213,7 +193,7 @@
         </div>
 
         <div class="small" id="tipText">
-          Tip: Spaced mode shows chunks like <b>cak a ral</b>. Toggle <b>•</b> for <b>cak•a•ral</b>.
+          Tip: Spaced mode shows chunks like <b>cak a ral</b>. Toggle <b>•</b> for <b>cak•a•ral</b>. Use <b>|</b> to visually separate words.
         </div>
       </div>
 
@@ -230,10 +210,10 @@
   </div>
 
   <script>
-    // ====== YOUR CANON MAPPING (locked) ======
-    //
+    // ====== SOFT ARGOT CANON (current) ======
+    // Consonants map to syllables; vowels can either pass through (a,e,i,o,u) or become -p syllables (ap/ep/ip/op/up)
 
-    const MAP = Object.freeze({
+    const MAP_CONSONANTS = Object.freeze({
       // Fricatives (-l)
       s: "sal",
       f: "fal",
@@ -245,19 +225,13 @@
       m: "man",
       n: "nan",
 
-      // Liquids/glides (L-ending version)
+      // Liquids/glides (-l)
       l: "lal",
       r: "ral",
       w: "wal",
       y: "yal",
 
-      a: "ap", 
-      e: "ep", 
-      i: "ip:, 
-      o: "op", 
-      u: "up", 
-
-      // Stops (-k)
+      // Stops (-k)  (K updated to KAL)
       b: "bak",
       c: "cak",
       d: "dak",
@@ -272,16 +246,27 @@
       x: "eks"
     });
 
-    const VOWELS = new Set(["a","e","i","o","u"]);
+    const MAP_VOWELS_P = Object.freeze({
+      a: "ap",
+      e: "ep",
+      i: "ip",
+      o: "op",
+      u: "up"
+    });
+
     const inputEl = document.getElementById("input");
     const outputEl = document.getElementById("output");
     const mapBoxEl = document.getElementById("mapbox");
 
     const modeSpaced = document.getElementById("modeSpaced");
     const modeFused = document.getElementById("modeFused");
+
     const preserveCaps = document.getElementById("preserveCaps");
+    const vowelPMode = document.getElementById("vowelPMode");
+
     const useDots = document.getElementById("useDots");
     const usePipes = document.getElementById("usePipes");
+
     const sepPill = document.getElementById("sepPill");
     const pipePill = document.getElementById("pipePill");
     const tipText = document.getElementById("tipText");
@@ -289,8 +274,21 @@
     const copyBtn = document.getElementById("copyBtn");
     const clearBtn = document.getElementById("clearBtn");
 
-    function isLetter(ch){
-      return /^[A-Za-z]$/.test(ch);
+    function isAZ(ch){ return /^[A-Za-z]$/.test(ch); }
+    function isWordJoiner(ch){ return ch === "'" || ch === "-"; }
+
+    function mapChar(low){
+      // If vowel-P mode is on, vowels become ap/ep/ip/op/up
+      if (vowelPMode.checked && MAP_VOWELS_P[low]) return MAP_VOWELS_P[low];
+
+      // Otherwise vowels pass through unchanged
+      if (!vowelPMode.checked && "aeiou".includes(low)) return low;
+
+      // Consonants always map via canon
+      if (MAP_CONSONANTS[low]) return MAP_CONSONANTS[low];
+
+      // Fallback
+      return low;
     }
 
     function translateWord(word, mode, keepCaps, dotSep){
@@ -298,15 +296,17 @@
       const isTitle = keepCaps && /^[A-Z][a-z]+$/.test(word);
 
       const parts = [];
-      for (const ch of word){
+      for (let idx = 0; idx < word.length; idx++){
+        const ch = word[idx];
         const low = ch.toLowerCase();
-        if (VOWELS.has(low)) {
-          parts.push(low);
-        } else if (MAP[low]) {
-          parts.push(MAP[low]);
-        } else {
-          parts.push(low);
+
+        // Keep joiners inside words (apostrophes/hyphens) as literal characters
+        if (isWordJoiner(ch)) {
+          parts.push(ch);
+          continue;
         }
+
+        parts.push(mapChar(low));
       }
 
       let out;
@@ -327,66 +327,81 @@
     }
 
     function translateText(text, mode, keepCaps, dotSep, pipeSep){
-  let i = 0;
-  let out = "";
+      let i = 0;
+      let out = "";
 
-  let lastWasWord = false;
-  let pendingWS = ""; // whitespace waiting between tokens (spaces/newlines/tabs)
+      let lastWasWord = false;
+      let pendingWS = "";
 
-  while (i < text.length){
-    const ch = text[i];
+      while (i < text.length){
+        const ch = text[i];
 
-    // WORD (letter-run)
-    if (isLetter(ch)){
-      let j = i;
-      while (j < text.length && isLetter(text[j])) j++;
-      const word = text.slice(i, j);
-      const translated = translateWord(word, mode, keepCaps, dotSep);
+        // WORD token: letters with optional internal ' or - between letters
+        if (isAZ(ch)){
+          let j = i;
+          while (j < text.length){
+            const cj = text[j];
+            if (isAZ(cj)) { j++; continue; }
+            if (isWordJoiner(cj) && j + 1 < text.length && isAZ(text[j + 1])) { j++; continue; }
+            break;
+          }
 
-      if (lastWasWord){
-        if (pipeSep && pendingWS.length){
-          out += " | ";
-        } else {
-          out += pendingWS; // keep original spacing if pipes aren't on
+          const word = text.slice(i, j);
+          const translated = translateWord(word, mode, keepCaps, dotSep);
+
+          if (lastWasWord){
+            if (pipeSep && pendingWS.length){
+              out += " | ";
+            } else {
+              out += pendingWS;
+            }
+          } else {
+            out += pendingWS;
+          }
+
+          out += translated;
+
+          pendingWS = "";
+          lastWasWord = true;
+          i = j;
+          continue;
         }
-      } else {
-        out += pendingWS; // leading whitespace, keep it
+
+        // whitespace token: hold it
+        if (/\s/.test(ch)){
+          pendingWS += ch;
+          i++;
+          continue;
+        }
+
+        // punctuation token: output it (and stop pipes across sentence endings)
+        out += pendingWS + ch;
+        pendingWS = "";
+
+        if (/[.!?]/.test(ch)) lastWasWord = false;
+
+        i++;
       }
 
-      out += translated;
-
-      pendingWS = "";
-      lastWasWord = true;
-      i = j;
-      continue;
+      out += pendingWS;
+      return out;
     }
-
-    // NON-WORD
-    if (/\s/.test(ch)){
-      // whitespace: hold it (so we can replace it with " | " if needed)
-      pendingWS += ch;
-      i++;
-      continue;
-    }
-
-    // punctuation/symbol: output immediately, then keep any pending whitespace AFTER it
-    out += pendingWS + ch;
-    pendingWS = "";
-    // NOTE: we do NOT set lastWasWord=false here, because punctuation can follow a word
-    i++;
-  }
-
-  // flush any trailing whitespace
-  out += pendingWS;
-  return out;
-}
 
     function renderMapBox(){
       const lines = [];
-      lines.push("Vowels (pass through): A E I O U");
+      lines.push("Mode notes:");
+      lines.push("- Vowels pass through by default (a e i o u).");
+      lines.push("- Toggle 'Vowels → -p' to make vowels ap/ep/ip/op/up.");
+      lines.push("");
+      lines.push("Vowels (-p option):");
+      lines.push("A → ap");
+      lines.push("E → ep");
+      lines.push("I → ip");
+      lines.push("O → op");
+      lines.push("U → up");
       lines.push("");
       lines.push("Consonants:");
-      const entries = Object.entries(MAP).sort((a,b)=>a[0].localeCompare(b[0]));
+      const entries = Object.entries(MAP_CONSONANTS).sort((a,b)=>a[0].localeCompare(b[0]));
       for (const [k,v] of entries){
         lines.push(`${k.toUpperCase()} → ${v}`);
       }
@@ -398,14 +413,12 @@
       sepPill.style.display = spaced ? "flex" : "none";
       pipePill.style.display = spaced ? "flex" : "none";
 
-      // Pipes only make sense when dots are on (your intended format),
-      // so auto-disable pipes if dots are off.
       if (!spaced){
         useDots.checked = false;
         usePipes.checked = false;
       }
       if (spaced && !useDots.checked){
-        usePipes.checked = false;
+        usePipes.checked = false; // your intended format
       }
 
       tipText.innerHTML = spaced
@@ -429,6 +442,7 @@
     preserveCaps.addEventListener("change", update);
     useDots.addEventListener("change", update);
     usePipes.addEventListener("change", update);
+    vowelPMode.addEventListener("change", update);
 
     copyBtn.addEventListener("click", async () => {
       try{
