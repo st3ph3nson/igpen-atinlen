@@ -195,7 +195,12 @@
 
           <div class="pill" id="sepPill">
             <input type="checkbox" id="useDots">
-            <label for="useDots" style="margin:0;color:inherit;">Use • separators</label>
+            <label for="useDots" style="margin:0;color:inherit;">Use • between letters</label>
+          </div>
+
+          <div class="pill" id="pipePill">
+            <input type="checkbox" id="usePipes">
+            <label for="usePipes" style="margin:0;color:inherit;">Use | between words</label>
           </div>
 
           <div class="pill">
@@ -208,7 +213,7 @@
         </div>
 
         <div class="small" id="tipText">
-          Tip: In spaced mode you’ll get letter-by-letter chunks like <b>cak a ral</b>. In fused mode you’ll get <b>cakaral</b>.
+          Tip: Spaced mode shows chunks like <b>cak a ral</b>. Toggle <b>•</b> for <b>cak•a•ral</b>.
         </div>
       </div>
 
@@ -270,7 +275,9 @@
     const modeFused = document.getElementById("modeFused");
     const preserveCaps = document.getElementById("preserveCaps");
     const useDots = document.getElementById("useDots");
+    const usePipes = document.getElementById("usePipes");
     const sepPill = document.getElementById("sepPill");
+    const pipePill = document.getElementById("pipePill");
     const tipText = document.getElementById("tipText");
 
     const copyBtn = document.getElementById("copyBtn");
@@ -313,20 +320,36 @@
       return out;
     }
 
-    function translateText(text, mode, keepCaps, dotSep){
+    function translateText(text, mode, keepCaps, dotSep, pipeSep){
       let i = 0;
       let out = "";
+      let atWordStart = true;
 
       while (i < text.length){
         const ch = text[i];
+
         if (isLetter(ch)){
           let j = i;
           while (j < text.length && isLetter(text[j])) j++;
           const word = text.slice(i, j);
-          out += translateWord(word, mode, keepCaps, dotSep);
+
+          const translated = translateWord(word, mode, keepCaps, dotSep);
+
+          if (!atWordStart){
+            out += pipeSep ? " | " : " ";
+          }
+          out += translated;
+
+          atWordStart = false;
           i = j;
         } else {
+          // Preserve punctuation/spaces exactly
           out += ch;
+
+          // If we hit whitespace or punctuation, next letter-run starts a new "word slot"
+          // so we don't accidentally add an extra separator after commas/periods.
+          if (!isLetter(ch)) atWordStart = true;
+
           i++;
         }
       }
@@ -348,11 +371,20 @@
     function syncUI(){
       const spaced = modeSpaced.checked;
       sepPill.style.display = spaced ? "flex" : "none";
+      pipePill.style.display = spaced ? "flex" : "none";
 
-      if (!spaced) useDots.checked = false;
+      // Pipes only make sense when dots are on (your intended format),
+      // so auto-disable pipes if dots are off.
+      if (!spaced){
+        useDots.checked = false;
+        usePipes.checked = false;
+      }
+      if (spaced && !useDots.checked){
+        usePipes.checked = false;
+      }
 
       tipText.innerHTML = spaced
-        ? `Tip: Spaced mode shows letter chunks like <b>cak a ral</b>. Toggle <b>• separators</b> for <b>cak•a•ral</b>.`
+        ? `Tip: Spaced mode shows <b>cak a ral</b>. Toggle <b>•</b> for <b>cak•a•ral</b>. With <b>|</b>, you get <b>cak•a•ral | tak•o</b>.`
         : `Tip: In fused mode you’ll get <b>cakaral</b> (no spaces).`;
     }
 
@@ -361,7 +393,9 @@
       const mode = modeFused.checked ? "fused" : "spaced";
       const keepCaps = preserveCaps.checked;
       const dotSep = useDots.checked && mode === "spaced";
-      outputEl.value = translateText(inputEl.value, mode, keepCaps, dotSep);
+      const pipeSep = usePipes.checked && mode === "spaced" && dotSep;
+
+      outputEl.value = translateText(inputEl.value, mode, keepCaps, dotSep, pipeSep);
     }
 
     inputEl.addEventListener("input", update);
@@ -369,6 +403,7 @@
     modeFused.addEventListener("change", update);
     preserveCaps.addEventListener("change", update);
     useDots.addEventListener("change", update);
+    usePipes.addEventListener("change", update);
 
     copyBtn.addEventListener("click", async () => {
       try{
