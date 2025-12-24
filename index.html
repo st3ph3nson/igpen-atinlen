@@ -4,98 +4,439 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ALA-AY Translator</title>
+
+  <!-- Google font fallback (if you *don’t* load GungshuChe) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
     :root{
-      --bg:#0b132b; --card:#ffffff; --text:#0f172a; --muted:#64748b;
-      --border:rgba(15,23,42,.15); --accent:#38bdf8;
+      --bg0:#05070f;
+      --bg1:#0b132b;
+      --bg2:#111827;
+
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.09);
+      --stroke: rgba(255,255,255,.10);
+
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.66);
+
+      --a:#38bdf8;   /* cyan */
+      --b:#a78bfa;   /* violet */
+      --c:#34d399;   /* green */
+
+      --shadow: 0 20px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+
+      /* Put your custom font FIRST. If you can host GungshuChe as a file,
+         add @font-face below and name it "GungshuChe". */
+      --displayFont: "GungshuChe", "Orbitron", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --uiFont: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-    *{box-sizing:border-box}
+
+    /* OPTIONAL: If you have the font file, drop it in your repo and uncomment.
+       Example paths:
+       /fonts/GungshuChe.woff2  and  /fonts/GungshuChe.woff
+    */
+    /*
+    @font-face{
+      font-family: "GungshuChe";
+      src: url("./fonts/GungshuChe.woff2") format("woff2"),
+           url("./fonts/GungshuChe.woff") format("woff");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    */
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
     body{
-      margin:0; padding:24px;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:linear-gradient(180deg,var(--bg),#111827);
-      color:var(--text);
+      margin:0;
+      font-family: var(--uiFont);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(56,189,248,.18), transparent 60%),
+        radial-gradient(900px 600px at 90% 20%, rgba(167,139,250,.16), transparent 55%),
+        radial-gradient(900px 700px at 50% 100%, rgba(52,211,153,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 35%, var(--bg2));
+      overflow-x:hidden;
     }
-    .wrap{max-width:980px;margin:0 auto}
-    header{color:#fff;margin-bottom:16px}
-    header h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.3px}
-    header p{margin:0;color:rgba(255,255,255,.75);font-size:14px;line-height:1.4}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+
+    .wrap{
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 22px 18px 34px;
+    }
+
+    /* Top bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      position: relative;
+      background:
+        radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.35), transparent 60%),
+        linear-gradient(135deg, rgba(56,189,248,.95), rgba(167,139,250,.95));
+      box-shadow: 0 12px 28px rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.16);
+      overflow:hidden;
+    }
+    .logo::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+      transform: rotate(20deg);
+      animation: sheen 4.2s ease-in-out infinite;
+    }
+    @keyframes sheen{
+      0%{ transform:translateX(-40%) rotate(20deg); opacity:.0; }
+      30%{ opacity:.35; }
+      60%{ transform:translateX(40%) rotate(20deg); opacity:.0; }
+      100%{ transform:translateX(40%) rotate(20deg); opacity:0; }
+    }
+
+    .titleblock{
+      min-width: 0;
+    }
+
+    h1{
+      margin:0;
+      font-family: var(--displayFont);
+      font-weight: 800;
+      letter-spacing: .8px;
+      font-size: 22px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subtitle{
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 720px;
+    }
+
+    .pillbar{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      gap: 10px;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 13px;
+      color: rgba(255,255,255,.85);
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      user-select:none;
+    }
+    .chip input{ transform: translateY(1px); accent-color: var(--a); }
+    .chip kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.78);
+      padding: 2px 6px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-bottom-color: rgba(255,255,255,.08);
+      border-radius: 8px;
+      background: rgba(0,0,0,.24);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    @media (min-width: 920px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+
     .card{
-      background:var(--card); border:1px solid var(--border);
-      border-radius:14px; padding:14px;
-      box-shadow:0 18px 45px rgba(0,0,0,.18);
+      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,.04));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
     }
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(600px 220px at 10% 0%, rgba(56,189,248,.16), transparent 60%),
+        radial-gradient(520px 240px at 100% 0%, rgba(167,139,250,.14), transparent 58%),
+        radial-gradient(520px 320px at 40% 120%, rgba(52,211,153,.10), transparent 62%);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    .cardhead{
+      position:relative;
+      padding: 14px 14px 10px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.12);
+    }
+    .cardhead .label{
+      font-size: 12px;
+      color: rgba(255,255,255,.68);
+      letter-spacing:.3px;
+    }
+    .counter{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.55);
+    }
+
+    .area{
+      position:relative;
+      padding: 12px;
+    }
+
     textarea{
-      width:100%; min-height:220px; resize:vertical;
-      padding:12px; border-radius:12px; border:1px solid var(--border);
-      outline:none; font-size:14px; line-height:1.45;
+      width:100%;
+      min-height: 260px;
+      resize: vertical;
+      padding: 14px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      outline:none;
+      font-size: 14px;
+      line-height: 1.5;
+      background: rgba(0,0,0,.28);
+      color: rgba(255,255,255,.92);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
+    textarea::placeholder{ color: rgba(255,255,255,.40); }
+
     textarea:focus{
-      border-color:rgba(56,189,248,.65);
-      box-shadow:0 0 0 3px rgba(56,189,248,.22);
+      border-color: rgba(56,189,248,.55);
+      box-shadow:
+        0 0 0 3px rgba(56,189,248,.20),
+        0 18px 50px rgba(0,0,0,.35);
+      background: rgba(0,0,0,.34);
     }
-    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top: 10px;
+    }
+
+    .btnrow{ display:flex; gap: 10px; flex-wrap:wrap; }
+
     button{
-      appearance:none; border:1px solid var(--border); background:#fff;
-      padding:9px 12px; border-radius:12px; font-weight:700;
-      cursor:pointer; font-size:13px;
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.88);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      cursor:pointer;
+      font-size: 13px;
+      letter-spacing:.2px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 12px 28px rgba(0,0,0,.28);
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
     }
     button:hover{
-      border-color:rgba(56,189,248,.75);
-      box-shadow:0 0 0 3px rgba(56,189,248,.18);
+      border-color: rgba(56,189,248,.55);
+      background: rgba(56,189,248,.10);
     }
-    .small{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
-    .pill{
-      display:inline-flex; gap:8px; align-items:center;
-      padding:8px 10px; border:1px solid var(--border);
-      border-radius:999px; background:#fff; font-size:13px;
+    button:active{ transform: translateY(1px); }
+
+    .primary{
+      border-color: rgba(167,139,250,.45);
+      background: linear-gradient(135deg, rgba(167,139,250,.16), rgba(56,189,248,.10));
     }
-    .pill input{transform:translateY(1px)}
+    .primary:hover{
+      border-color: rgba(167,139,250,.70);
+      background: linear-gradient(135deg, rgba(167,139,250,.22), rgba(56,189,248,.14));
+    }
+
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.62);
+      line-height: 1.45;
+    }
+    .hint b{
+      color: rgba(255,255,255,.90);
+      font-weight: 800;
+      font-family: var(--mono);
+      letter-spacing:.2px;
+    }
+
+    .rulebox{
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px dashed rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      white-space: pre-wrap;
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 16px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.55);
+      color: rgba(255,255,255,.9);
+      font-size: 13px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    /* small tweak for iOS safe area */
+    @supports (padding: max(0px)) {
+      .wrap{ padding-bottom: max(34px, env(safe-area-inset-bottom)); }
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <header>
-      <h1>ALA-AY Translator</h1>
-    </header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="titleblock">
+          <h1>ALA-AY Translator</h1>
+          <p class="subtitle">
+            Cluster-aware English masking. Consonant-start words get <b>{CLUSTER}ala</b>…<b>{CLUSTER}ay</b>.
+            Vowel-start words get <b>lay</b>. <b>I</b> stays <b>I</b>.
+          </p>
+        </div>
+      </div>
+
+      <div class="pillbar">
+        <label class="chip" title="Preserve ALLCAPS / Title Case">
+          <input type="checkbox" id="preserveCaps" checked>
+          Preserve Caps
+        </label>
+        <span class="chip" title="Keyboard shortcuts">
+          <kbd>⌘</kbd><kbd>Enter</kbd> Copy
+        </span>
+      </div>
+    </div>
 
     <div class="grid">
-      <div class="card">
-        <label for="input">English input</label>
-        <textarea id="input" placeholder="Type here... e.g. The dog drove the car."></textarea>
+      <section class="card">
+        <div class="cardhead">
+          <div class="label">English input</div>
+          <div class="counter"><span id="inCount">0</span> chars</div>
+        </div>
+        <div class="area">
+          <textarea id="input" placeholder="Type here… e.g. Today my sister got her diploma."></textarea>
 
-        <div class="controls">
-          <div class="pill">
-            <input type="checkbox" id="preserveCaps" checked>
-            <label for="preserveCaps" style="margin:0;color:inherit;">Preserve capitalization</label>
+          <div class="actions">
+            <div class="btnrow">
+              <button class="primary" id="copyBtn" type="button">Copy output</button>
+              <button id="swapBtn" type="button" title="Swap input/output">Swap</button>
+              <button id="clearBtn" type="button">Clear</button>
+            </div>
           </div>
-          <button id="copyBtn" type="button">Copy output</button>
-          <button id="clearBtn" type="button">Clear</button>
-        </div>
 
-        <div class="small">
-          Examples:
-          <b>closet → clalaclosetclay</b>,
-          <b>throw → thralathrowthray</b>,
-          <b>shop → shalashopshay</b>,
-          <b>apple → applelay</b>,
-          <b>my → malamymay</b>,
-          <b>I → I</b>.
-        </div>
-      </div>
+          <div class="hint">
+            Examples:
+            <b>closet → clalaclosetclay</b>,
+            <b>throw → thralathrowthray</b>,
+            <b>shop → shalashopshay</b>,
+            <b>apple → applelay</b>,
+            <b>my → malamymay</b>,
+            <b>I → I</b>
+          </div>
 
-      <div class="card">
-        <label for="output">Translated output</label>
-        <textarea id="output" readonly placeholder="Output appears here..."></textarea>
-      </div>
+          <details style="margin-top:10px;">
+            <summary class="chip" style="cursor:pointer; display:inline-flex;">Show rules</summary>
+            <div class="rulebox">
+Consonant-start word:
+  cluster = initial consonants up to the first vowel (AEIOU always; Y is vowel only if no AEIOU and not first)
+  output = cluster + "ala" + word + cluster + "ay"
+
+Vowel-start word:
+  output = word + "lay"
+
+Special:
+  "I" stays unchanged
+  punctuation/spaces preserved
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="cardhead">
+          <div class="label">ALA-AY output</div>
+          <div class="counter"><span id="outCount">0</span> chars</div>
+        </div>
+        <div class="area">
+          <textarea id="output" readonly placeholder="Output appears here…"></textarea>
+        </div>
+      </section>
     </div>
   </div>
 
+  <div class="toast" id="toast">Copied.</div>
+
   <script>
+    // ===== Rules engine (your logic, unchanged) =====
     // AEIOU are vowels always.
     // Y is treated as a vowel only when:
     //   - it is NOT the first letter, AND
@@ -107,6 +448,11 @@
     const preserveCaps = document.getElementById("preserveCaps");
     const copyBtn = document.getElementById("copyBtn");
     const clearBtn = document.getElementById("clearBtn");
+    const swapBtn = document.getElementById("swapBtn");
+
+    const inCount = document.getElementById("inCount");
+    const outCount = document.getElementById("outCount");
+    const toast = document.getElementById("toast");
 
     function isLetter(ch){
       return /^[A-Za-z]$/.test(ch);
@@ -155,7 +501,7 @@
 
       const low = word.toLowerCase();
 
-      // Vowel-start (including "y" only if it qualifies by rule above at index 0—which it doesn't)
+      // Vowel-start
       if (isVowelAt(low, 0)){
         const t = word + "lay";
         return styleLike(word, t);
@@ -192,8 +538,20 @@
       return out;
     }
 
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=>toast.classList.remove("show"), 900);
+    }
+
     function update(){
-      outputEl.value = translateText(inputEl.value);
+      const inVal = inputEl.value;
+      const outVal = translateText(inVal);
+      outputEl.value = outVal;
+
+      inCount.textContent = String(inVal.length);
+      outCount.textContent = String(outVal.length);
     }
 
     inputEl.addEventListener("input", update);
@@ -202,8 +560,7 @@
     copyBtn.addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText(outputEl.value);
-        copyBtn.textContent = "Copied!";
-        setTimeout(()=>copyBtn.textContent="Copy output", 900);
+        showToast("Copied.");
       } catch(e){
         alert("Copy failed (clipboard permission). You can manually select + copy.");
       }
@@ -214,6 +571,33 @@
       outputEl.value = "";
       inputEl.focus();
       update();
+      showToast("Cleared.");
+    });
+
+    swapBtn.addEventListener("click", () => {
+      const a = inputEl.value;
+      const b = outputEl.value;
+      inputEl.value = b;
+      outputEl.value = a;
+      inputEl.focus();
+      update();
+      showToast("Swapped.");
+    });
+
+    // Keyboard shortcut: Cmd/Ctrl + Enter copies output
+    window.addEventListener("keydown", async (e) => {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const mod = isMac ? e.metaKey : e.ctrlKey;
+
+      if (mod && e.key === "Enter"){
+        e.preventDefault();
+        try{
+          await navigator.clipboard.writeText(outputEl.value);
+          showToast("Copied.");
+        } catch(err){
+          // ignore
+        }
+      }
     });
 
     update();
