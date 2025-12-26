@@ -322,7 +322,7 @@
       const matches = src.match(vowels);
       const nuked = matches ? matches.length : 0;
 
-      const out = src.replace(vowels, ""); // DELETE vowels (no ~)
+      const out = src.replace(vowels, "."); // DELETE vowels (no ~)
 
       outText.value = out;
 
@@ -332,7 +332,7 @@
     }
 
     async function copyOutput() {
-      const text = outText.value ?? ".";
+      const text = outText.value ?? "";
       if (!text) return;
 
       try {
