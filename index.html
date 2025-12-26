@@ -2,377 +2,343 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ALA-AY Translator</title>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vowel Nuker 95™</title>
   <style>
     :root{
-      --bg:#0b132b;
-      --bg2:#111827;
-      --card:rgba(255,255,255,0.08);
-      --cardSolid:#0f172a;
-      --text:#e5e7eb;
-      --muted:rgba(229,231,235,0.72);
-      --border:rgba(255,255,255,0.16);
-      --accent:#38bdf8;
-      --accent2:#a78bfa;
+      --bg:#9aa3ad;
+      --panel:#c9ced6;
+      --bezel:#6f7780;
+      --dark:#2b2f36;
+      --screen:#bfe3b9;
+      --screen2:#a8d8a2;
+      --text:#0b1a0b;
+      --btn:#e6e6e6;
+      --btn2:#d2d2d2;
+      --red:#c93b3b;
+      --blue:#2e5bd6;
+      --yellow:#d6b12e;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, sans-serif;
     }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:
-        radial-gradient(900px 500px at 15% 15%, rgba(56,189,248,.22), transparent 55%),
-        radial-gradient(900px 500px at 85% 25%, rgba(167,139,250,.18), transparent 60%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
-      color:var(--text);
-      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
-    }
-
-    .wrap{ max-width: 980px; margin: 0 auto; }
-
-    /* ======= HEADER (kept compact so it doesn’t crowd mobile) ======= */
-    header{
-      margin-bottom: 12px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(15,23,42,0.35);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    .titleRow{
+      background: linear-gradient(180deg, #7f8892, var(--bg));
+      font-family: var(--sans);
+      color:#111;
       display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    h1{
-      margin:0;
-      font-size: 22px;
-      line-height: 1.1;
-      letter-spacing: .4px;
-      font-weight: 900;
-      /* “cutting edge” look without external fonts */
-      text-transform: uppercase;
-    }
-    .sub{
-      margin: 4px 0 0 0;
-      font-size: 12px;
-      line-height: 1.35;
-      color: var(--muted);
-    }
-
-    .badge{
-      display:inline-flex;
       align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(0,0,0,0.18);
-      font-size: 12px;
-      color: rgba(255,255,255,0.85);
-      white-space: nowrap;
-    }
-    .dot{
-      width:8px;height:8px;border-radius:999px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+      justify-content:center;
+      min-height:100vh;
+      padding:16px;
     }
 
-    /* ======= GRID / CARDS ======= */
-    .grid{ display:grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 900px){ .grid{ grid-template-columns: 1fr 1fr; } }
-
-    .card{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(15,23,42,0.35);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 18px 45px rgba(0,0,0,.28);
-      overflow:hidden;
+    .device{
+      width:min(900px, 100%);
+      background: linear-gradient(180deg, var(--panel), #b7bcc5);
+      border: 4px solid var(--bezel);
+      border-radius: 16px;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.35),
+        inset 0 2px 0 rgba(255,255,255,0.6);
+      padding:16px;
     }
 
-    .cardHead{
+    .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      padding: 12px 14px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
+      padding:8px 10px 14px;
     }
 
-    .cardHead .label{
-      font-size: 12px;
-      color: rgba(255,255,255,0.78);
-      letter-spacing: .2px;
+    .brand{
+      font-weight:800;
+      letter-spacing:0.5px;
+      text-transform:uppercase;
+      font-size:14px;
+      color:#222;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #bbb);
+      border:1px solid rgba(0,0,0,0.25);
+    }
+    .model{
+      font-family: var(--mono);
+      font-size:12px;
+      color:#333;
+      opacity:0.9;
     }
 
-    .pill{
-      display:inline-flex;
+    .screen-wrap{
+      background: #3a3f47;
+      border-radius: 12px;
+      padding:12px;
+      border: 3px solid #1f232a;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.08);
+    }
+
+    .screen{
+      background: linear-gradient(180deg, var(--screen), var(--screen2));
+      border-radius: 8px;
+      border: 2px solid rgba(0,0,0,0.45);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
+      padding:10px;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    .screen .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .label{
+      font-size:12px;
+      opacity:0.85;
+    }
+
+    .toggle{
+      display:flex;
       align-items:center;
       gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(0,0,0,0.18);
-      font-size: 13px;
-      color: rgba(255,255,255,0.9);
+      font-size:12px;
       user-select:none;
-      -webkit-user-select:none;
     }
-    .pill input{ transform: translateY(1px); }
-
-    .cardBody{ padding: 12px 14px 14px; }
+    .toggle input{
+      accent-color: #2b6;
+      transform: translateY(1px);
+    }
 
     textarea{
       width:100%;
-      min-height: 220px;
-      resize: vertical;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(2,6,23,0.45);
-      color: rgba(255,255,255,0.92);
+      min-height:110px;
+      resize:vertical;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.45);
+      background: rgba(255,255,255,0.55);
+      color:#0c1a0c;
+      font-family: var(--mono);
+      font-size: 14px;
+      padding:10px;
       outline:none;
-      font-size: 15px;
-      line-height: 1.45;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
     }
-    textarea::placeholder{ color: rgba(255,255,255,0.35); }
-    textarea:focus{
-      border-color: rgba(56,189,248,.65);
-      box-shadow: 0 0 0 4px rgba(56,189,248,.18);
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    @media (min-width: 820px){
+      .split{ grid-template-columns: 1fr 1fr; }
+      textarea{ min-height: 180px; }
     }
 
     .controls{
       display:flex;
       flex-wrap:wrap;
       gap:10px;
+      padding:12px 2px 4px;
       align-items:center;
-      margin-top: 10px;
+      justify-content:space-between;
+    }
+
+    .btns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
     }
 
     button{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(0,0,0,0.18);
-      color: rgba(255,255,255,0.92);
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-weight: 800;
+      border: 2px solid rgba(0,0,0,0.45);
+      background: linear-gradient(180deg, var(--btn), var(--btn2));
+      border-radius: 10px;
+      padding:10px 14px;
+      font-weight:700;
+      font-family: var(--sans);
       cursor:pointer;
-      font-size: 13px;
+      box-shadow:
+        0 4px 0 rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+      transition: transform 0.03s ease-in-out;
     }
-    button:hover{
-      border-color: rgba(56,189,248,.65);
-      box-shadow: 0 0 0 4px rgba(56,189,248,.14);
+    button:active{
+      transform: translateY(2px);
+      box-shadow:
+        0 2px 0 rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.6);
     }
 
-    .small{
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(229,231,235,0.70);
-      line-height: 1.35;
+    .btn-primary{ border-color: rgba(0,0,0,0.55); }
+    .btn-red{
+      background: linear-gradient(180deg, #ff6d6d, var(--red));
+      color:#140000;
     }
-    .small b{ color: rgba(255,255,255,0.92); }
+    .btn-blue{
+      background: linear-gradient(180deg, #6ea0ff, var(--blue));
+      color:#071026;
+    }
+    .btn-yellow{
+      background: linear-gradient(180deg, #ffe08a, var(--yellow));
+      color:#241b05;
+    }
 
-    .examples{
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px dashed rgba(255,255,255,0.18);
-      background: rgba(2,6,23,0.35);
-      font-size: 12px;
-      color: rgba(229,231,235,0.78);
-      line-height: 1.35;
+    .status{
+      font-family: var(--mono);
+      font-size:12px;
+      opacity:0.9;
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
     }
-    .examples code{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      color: rgba(255,255,255,0.92);
+
+    .pill{
+      border:1px solid rgba(0,0,0,0.35);
+      background: rgba(255,255,255,0.35);
+      padding:6px 10px;
+      border-radius:999px;
     }
+
+    .foot{
+      margin-top:10px;
+      font-size:12px;
+      opacity:0.85;
+      color:#222;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .foot code{ font-family: var(--mono); }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <header>
-      <div class="titleRow">
-        <h1>ALA-AY</h1>
-        <div class="badge"><span class="dot"></span><span>Word Translator</span></div>
+  <div class="device" role="application" aria-label="Vowel Nuker 95 Translator">
+    <div class="topbar">
+      <div class="brand">
+        <span class="dot" aria-hidden="true"></span>
+        VOWEL NUKER 95™
       </div>
-      <p class="sub">
-        Cluster-aware English masking. Consonant-start: <b>{CLUSTER}ala + word + {CLUSTER}ay</b>. Vowel-start: <b>word + lay</b>. <b>I</b> stays <b>I</b>.
-      </p>
-    </header>
+      <div class="model">MODEL: VN-1996 • “CHEAP BUT LOUD” EDITION</div>
+    </div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="cardHead">
-          <div class="label">English input</div>
-          <label class="pill" for="preserveCaps" title="Preserve capitalization">
-            <input type="checkbox" id="preserveCaps" checked>
-            Preserve Caps
+    <div class="screen-wrap">
+      <div class="screen">
+        <div class="row">
+          <div class="label">INPUT (Type English. We delete vowels. Deal with it.)</div>
+          <label class="toggle" title="If ON, keeps Y/y as a consonant. If OFF, replaces Y/y too.">
+            <input id="keepY" type="checkbox" checked />
+            Keep Y/y
           </label>
         </div>
 
-        <div class="cardBody">
-          <textarea id="input" placeholder="Type here... e.g. Today my sister got her diploma."></textarea>
-
-          <div class="controls">
-            <button id="copyBtn" type="button">Copy output</button>
-            <button id="clearBtn" type="button">Clear</button>
+        <div class="split">
+          <div>
+            <textarea id="inText" placeholder="Type here...">The car is broken and old. It's broken down in the driveway.</textarea>
           </div>
-
-          <div class="examples">
-            Examples:
-            <code>closet → clalaclosetclay</code>,
-            <code>throw → thralathrowthray</code>,
-            <code>shop → shalashopshay</code>,
-            <code>apple → applelay</code>,
-            <code>my → malamymay</code>,
-            <code>I → I</code>.
+          <div>
+            <div class="label" style="margin:0 0 6px;">OUTPUT (Vowels → ~)</div>
+            <textarea id="outText" readonly placeholder="Output appears here..."></textarea>
           </div>
         </div>
-      </div>
 
-      <div class="card">
-        <div class="cardHead">
-          <div class="label">Translated output</div>
-          <div class="pill" aria-hidden="true">Live</div>
-        </div>
+        <div class="controls">
+          <div class="btns">
+            <button class="btn-primary btn-blue" id="btnTranslate">TRANSLATE</button>
+            <button class="btn-yellow" id="btnCopy">COPY OUTPUT</button>
+            <button class="btn-red" id="btnClear">CLEAR</button>
+          </div>
 
-        <div class="cardBody">
-          <textarea id="output" readonly placeholder="Output appears here..."></textarea>
-          <div class="small">
-            Tip: clusters are detected like Pig Latin (e.g., <b>thr</b>, <b>sh</b>, <b>cl</b>). Punctuation stays.
+          <div class="status">
+            <span class="pill" id="countIn">IN: 0 chars</span>
+            <span class="pill" id="countOut">OUT: 0 chars</span>
+            <span class="pill" id="countV">VOWELS NUKED: 0</span>
           </div>
         </div>
       </div>
     </div>
+
+    <div class="foot">
+      <div>Rule: replace <code>AEIOU</code> (and <code>Y</code> if unchecked) with <code>~</code>.</div>
+      <div>Tip: try it with no spaces for maximum chaos.</div>
+    </div>
   </div>
 
   <script>
-    // AEIOU are vowels always.
-    // Y is treated as a vowel only when:
-    //   - it is NOT the first letter, AND
-    //   - the word contains no AEIOU anywhere (fixes "my" => m + y[vowel])
-    const CORE_VOWELS = new Set(["a","e","i","o","u"]);
+    const inText = document.getElementById('inText');
+    const outText = document.getElementById('outText');
+    const keepY = document.getElementById('keepY');
 
-    const inputEl = document.getElementById("input");
-    const outputEl = document.getElementById("output");
-    const preserveCaps = document.getElementById("preserveCaps");
-    const copyBtn = document.getElementById("copyBtn");
-    const clearBtn = document.getElementById("clearBtn");
+    const countIn = document.getElementById('countIn');
+    const countOut = document.getElementById('countOut');
+    const countV = document.getElementById('countV');
 
-    function isLetter(ch){
-      return /^[A-Za-z]$/.test(ch);
+    const btnTranslate = document.getElementById('btnTranslate');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnClear = document.getElementById('btnClear');
+
+    function translateNow() {
+      const src = inText.value ?? "";
+      const vowels = keepY.checked ? /[AEIOUaeiou]/g : /[AEIOUYaeiouy]/g;
+
+      let nuked = 0;
+      const out = src.replace(vowels, () => { nuked++; return "~"; });
+
+      outText.value = out;
+
+      countIn.textContent = `IN: ${src.length} chars`;
+      countOut.textContent = `OUT: ${out.length} chars`;
+      countV.textContent = `VOWELS NUKED: ${nuked}`;
     }
 
-    function styleLike(originalWord, translated){
-      if (!preserveCaps.checked) return translated;
+    async function copyOutput() {
+      const text = outText.value ?? "";
+      if (!text) return;
 
-      const isAllCaps = originalWord.length > 1 && originalWord === originalWord.toUpperCase();
-      const isTitle = /^[A-Z][a-z]+$/.test(originalWord);
-
-      if (isAllCaps) return translated.toUpperCase();
-      if (isTitle) return translated.charAt(0).toUpperCase() + translated.slice(1);
-      return translated;
-    }
-
-    function hasCoreVowel(wordLower){
-      for (const ch of wordLower){
-        if (CORE_VOWELS.has(ch)) return true;
+      try {
+        await navigator.clipboard.writeText(text);
+        btnCopy.textContent = "COPIED!";
+        setTimeout(() => (btnCopy.textContent = "COPY OUTPUT"), 900);
+      } catch (e) {
+        // Fallback for older / locked-down browsers
+        outText.focus();
+        outText.select();
+        document.execCommand('copy');
+        btnCopy.textContent = "COPIED!";
+        setTimeout(() => (btnCopy.textContent = "COPY OUTPUT"), 900);
       }
-      return false;
     }
 
-    function isVowelAt(wordLower, idx){
-      const ch = wordLower[idx];
-      if (CORE_VOWELS.has(ch)) return true;
-
-      // Y-as-vowel rule (only if no AEIOU and not first char)
-      if (ch === "y" && idx > 0 && !hasCoreVowel(wordLower)) return true;
-
-      return false;
+    function clearAll() {
+      inText.value = "";
+      outText.value = "";
+      translateNow();
+      inText.focus();
     }
 
-    // Pig-Latin-ish initial consonant cluster: all starting consonants up to first vowel.
-    function getInitialCluster(wordLower){
-      let i = 0;
-      while (i < wordLower.length && !isVowelAt(wordLower, i)) i++;
-      return wordLower.slice(0, i); // "" if vowel-start
-    }
+    // Live update like a cheap translator that can't wait to be helpful
+    inText.addEventListener('input', translateNow);
+    keepY.addEventListener('change', translateNow);
 
-    function translateWord(word){
-      if (!word) return word;
+    btnTranslate.addEventListener('click', translateNow);
+    btnCopy.addEventListener('click', copyOutput);
+    btnClear.addEventListener('click', clearAll);
 
-      // Special case: I stays as-is (exactly I or i)
-      if (word === "I" || word === "i") return word;
-
-      const low = word.toLowerCase();
-
-      // Vowel-start
-      if (isVowelAt(low, 0)){
-        return styleLike(word, word + "lay");
-      }
-
-      // Consonant-start: cluster ala + word + cluster ay
-      const cluster = getInitialCluster(low);
-      const c = cluster.length ? cluster : low[0]; // fallback
-
-      return styleLike(word, `${c}ala${word}${c}ay`);
-    }
-
-    function translateText(text){
-      let i = 0;
-      let out = "";
-
-      while (i < text.length){
-        const ch = text[i];
-
-        if (isLetter(ch)){
-          let j = i;
-          while (j < text.length && isLetter(text[j])) j++;
-          out += translateWord(text.slice(i, j));
-          i = j;
-        } else {
-          out += ch;
-          i++;
-        }
-      }
-      return out;
-    }
-
-    function update(){
-      outputEl.value = translateText(inputEl.value);
-    }
-
-    inputEl.addEventListener("input", update);
-    preserveCaps.addEventListener("change", update);
-
-    copyBtn.addEventListener("click", async () => {
-      try{
-        await navigator.clipboard.writeText(outputEl.value);
-        copyBtn.textContent = "Copied!";
-        setTimeout(()=>copyBtn.textContent="Copy output", 900);
-      } catch(e){
-        alert("Copy failed (clipboard permission). You can manually select + copy.");
-      }
-    });
-
-    clearBtn.addEventListener("click", () => {
-      inputEl.value = "";
-      outputEl.value = "";
-      inputEl.focus();
-      update();
-    });
-
-    update();
+    // Boot
+    translateNow();
   </script>
 </body>
 </html>
