@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>-an Translator (Clusters + Vowel-Rotate)</title>
+  <title>-eg Translator (Vowel-Rotate Only)</title>
   <style>
     :root{
       --bg:#0b132b; --card:#ffffff; --text:#0f172a; --muted:#64748b;
@@ -61,9 +61,10 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>-an Translator</h1>
+      <h1>-eg Translator</h1>
       <p>
-        Consonant-start → Pig Latin (consonant cluster) + <b>an</b>. Vowel-start (A/E/I/O/U/Y) → last letter to front + <b>an</b>.
+        <b>Only</b> words that start with a vowel (A/E/I/O/U/Y) change:
+        last letter → front + <b>eg</b>. Consonant-start words stay exactly the same.
       </p>
     </header>
 
@@ -83,10 +84,13 @@
 
         <div class="small">
           Examples:
-          <code>open → nopean</code>,
-          <code>you → uoyan</code>,
-          <code>Friday → idayfran</code>,
-          <code>street → eetstran</code>
+          <code>open → nopeeg</code>,
+          <code>always → salwayeg</code>,
+          <code>either → reitheeg</code>,
+          <code>and → daneg</code>,
+          <code>a → aeg</code>,
+          <code>an → naeg</code>,
+          <code>you → uoyeg</code>
         </div>
       </div>
 
@@ -94,7 +98,8 @@
         <label for="output">Output</label>
         <textarea id="output" readonly placeholder="Output appears here..."></textarea>
         <div class="small">
-          Rules: vowel-start (AEIOUY) length≥2 → rotate-last-to-front + <code>an</code>. Otherwise → move initial consonant cluster + <code>an</code>.
+          Rule: vowel-start (AEIOUY) length ≥ 1 → rotate-last-to-front + <code>eg</code>.
+          Consonant-start words pass through unchanged.
         </div>
       </div>
     </div>
@@ -109,10 +114,6 @@
 
     const VOWELS = new Set(["a","e","i","o","u","y"]);
 
-    function isLetter(ch){
-      return /[A-Za-z]/.test(ch);
-    }
-
     function isVowel(ch){
       return VOWELS.has(ch.toLowerCase());
     }
@@ -125,7 +126,7 @@
 
       if (isAllCaps) return transformedLower.toUpperCase();
       if (isTitle) return transformedLower[0].toUpperCase() + transformedLower.slice(1).toLowerCase();
-      return transformedLower; // default: keep as lower-ish result
+      return transformedLower;
     }
 
     // Extract leading punctuation, word, trailing punctuation
@@ -135,36 +136,22 @@
       return { lead: m[1], word: m[2], trail: m[3] };
     }
 
-    // Pig Latin cluster: move initial consonant cluster to end, then + "an"
-    function consonantClusterTransform(word){
-      const lower = word.toLowerCase();
-
-      // Find index of first vowel (AEIOUY). Everything before is the consonant cluster.
-      let idx = 0;
-      while (idx < lower.length && !isVowel(lower[idx])) idx++;
-
-      // If no vowel found, treat whole word as cluster (still transforms)
-      const cluster = lower.slice(0, idx);
-      const rest = lower.slice(idx);
-
-      const transformed = (rest + cluster) + "an";
-      return preserveCase(word, transformed);
-    }
-
-    // Vowel-start: last letter to front + "an" (length >= 2)
+    // Vowel-start: last letter to front + "eg"
+    // Special-cases naturally fall out:
+    // "a" -> "aeg", "I" -> "Ieg", "an" -> "naeg"
     function vowelStartTransform(word){
       const lower = word.toLowerCase();
-      if (lower.length < 2) return word; // should not happen per calling logic
-      const transformed = (lower[lower.length - 1] + lower.slice(0, -1)) + "an";
+      const rotated = lower.length === 1
+        ? lower
+        : (lower[lower.length - 1] + lower.slice(0, -1));
+      const transformed = rotated + "eg";
       return preserveCase(word, transformed);
     }
 
     function transformWord(word){
-      // Leave 1-letter words alone (you can change this if you want)
-      if (word.length < 2) return word;
-
-      if (isVowel(word[0])) return vowelStartTransform(word);
-      return consonantClusterTransform(word);
+      // Consonant-start words are left alone, per your request.
+      if (!isVowel(word[0])) return word;
+      return vowelStartTransform(word);
     }
 
     function translateText(text){
