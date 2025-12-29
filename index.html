@@ -3,366 +3,215 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vowel Nuker 95™</title>
+  <title>-an Translator (Clusters + Vowel-Rotate)</title>
   <style>
     :root{
-      --bg:#9aa3ad;
-      --panel:#c9ced6;
-      --bezel:#6f7780;
-      --dark:#2b2f36;
-      --screen:#bfe3b9;
-      --screen2:#a8d8a2;
-      --text:#0b1a0b;
-      --btn:#e6e6e6;
-      --btn2:#d2d2d2;
-      --red:#c93b3b;
-      --blue:#2e5bd6;
-      --yellow:#d6b12e;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      --sans: system-ui, -apple-system, Segoe UI, sans-serif;
+      --bg:#0b132b; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --border:rgba(15,23,42,.15); --accent:#38bdf8;
     }
-
-    *{ box-sizing:border-box; }
-
+    *{box-sizing:border-box}
     body{
-      margin:0;
-      background: linear-gradient(180deg, #7f8892, var(--bg));
-      font-family: var(--sans);
-      color:#111;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-      padding:16px;
+      margin:0; padding:24px;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:linear-gradient(180deg,var(--bg),#111827);
+      color:var(--text);
     }
-
-    .device{
-      width:min(900px, 100%);
-      background: linear-gradient(180deg, var(--panel), #b7bcc5);
-      border: 4px solid var(--bezel);
-      border-radius: 16px;
-      box-shadow:
-        0 18px 40px rgba(0,0,0,0.35),
-        inset 0 2px 0 rgba(255,255,255,0.6);
-      padding:16px;
-      overflow:hidden; /* just in case anything tries to escape */
+    .wrap{max-width:980px;margin:0 auto}
+    header{color:#fff;margin-bottom:16px}
+    header h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.3px}
+    header p{margin:0;color:rgba(255,255,255,.75);font-size:14px;line-height:1.4}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .card{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:14px;
+      box-shadow:0 18px 45px rgba(0,0,0,.18);
     }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:8px 10px 14px;
-      flex-wrap:wrap; /* mobile-safe */
-    }
-
-    .brand{
-      font-weight:800;
-      letter-spacing:0.5px;
-      text-transform:uppercase;
-      font-size:14px;
-      color:#222;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      white-space:nowrap;
-    }
-    .brand .dot{
-      width:10px;height:10px;border-radius:50%;
-      background: radial-gradient(circle at 30% 30%, #fff, #bbb);
-      border:1px solid rgba(0,0,0,0.25);
-    }
-    .model{
-      font-family: var(--mono);
-      font-size:12px;
-      color:#333;
-      opacity:0.9;
-    }
-
-    .screen-wrap{
-      background: #3a3f47;
-      border-radius: 12px;
-      padding:12px;
-      border: 3px solid #1f232a;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.08);
-    }
-
-    .screen{
-      background: linear-gradient(180deg, var(--screen), var(--screen2));
-      border-radius: 8px;
-      border: 2px solid rgba(0,0,0,0.45);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
-      padding:10px;
-      color: var(--text);
-      font-family: var(--mono);
-      max-width:100%;
-      overflow:hidden;
-    }
-
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      justify-content:space-between;
-      margin-bottom:10px;
-      flex-wrap:wrap; /* critical for small screens */
-    }
-
-    .label{
-      font-size:12px;
-      opacity:0.85;
-      flex: 1 1 auto;
-      min-width: 220px;
-    }
-
-    .toggle{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      user-select:none;
-      flex: 0 0 auto;
-      white-space:nowrap;
-    }
-    .toggle input{
-      accent-color: #2b6;
-      transform: translateY(1px);
-    }
-
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
     textarea{
-      width:100%;
-      max-width:100%;
-      min-width:0;          /* critical inside grid/flex */
-      display:block;
-      min-height:120px;
-      resize:vertical;
-      border-radius: 6px;
-      border: 1px solid rgba(0,0,0,0.45);
-      background: rgba(255,255,255,0.55);
-      color:#0c1a0c;
-      font-family: var(--mono);
-      font-size: 14px;
-      padding:10px;
-      outline:none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
-      overflow-wrap:anywhere; /* no horizontal spill */
-      word-break:break-word;
+      width:100%; min-height:220px; resize:vertical;
+      padding:12px; border-radius:12px; border:1px solid var(--border);
+      outline:none; font-size:14px; line-height:1.45;
     }
-
-    .split{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      width:100%;
-      margin:0 auto;        /* centered */
-      max-width:100%;
+    textarea:focus{
+      border-color:rgba(56,189,248,.65);
+      box-shadow:0 0 0 3px rgba(56,189,248,.22);
     }
-    .split > div{
-      min-width:0;          /* critical: lets boxes shrink instead of overflowing */
-      max-width:100%;
-    }
-
-    @media (min-width: 820px){
-      .split{ grid-template-columns: 1fr 1fr; }
-      textarea{ min-height: 180px; }
-    }
-
-    .controls{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      padding:12px 2px 4px;
-      align-items:center;
-      justify-content:space-between;
-    }
-
-    .btns{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-    }
-
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
     button{
-      border: 2px solid rgba(0,0,0,0.45);
-      background: linear-gradient(180deg, var(--btn), var(--btn2));
-      border-radius: 10px;
-      padding:10px 14px;
-      font-weight:700;
-      font-family: var(--sans);
-      cursor:pointer;
-      box-shadow:
-        0 4px 0 rgba(0,0,0,0.25),
-        inset 0 1px 0 rgba(255,255,255,0.6);
-      transition: transform 0.03s ease-in-out;
+      appearance:none; border:1px solid var(--border); background:#fff;
+      padding:9px 12px; border-radius:12px; font-weight:700;
+      cursor:pointer; font-size:13px;
     }
-    button:active{
-      transform: translateY(2px);
-      box-shadow:
-        0 2px 0 rgba(0,0,0,0.25),
-        inset 0 1px 0 rgba(255,255,255,0.6);
+    button:hover{
+      border-color:rgba(56,189,248,.75);
+      box-shadow:0 0 0 3px rgba(56,189,248,.18);
     }
-
-    .btn-primary{ border-color: rgba(0,0,0,0.55); }
-    .btn-red{
-      background: linear-gradient(180deg, #ff6d6d, var(--red));
-      color:#140000;
-    }
-    .btn-blue{
-      background: linear-gradient(180deg, #6ea0ff, var(--blue));
-      color:#071026;
-    }
-    .btn-yellow{
-      background: linear-gradient(180deg, #ffe08a, var(--yellow));
-      color:#241b05;
-    }
-
-    .status{
-      font-family: var(--mono);
-      font-size:12px;
-      opacity:0.9;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:flex-end;
-    }
-
     .pill{
-      border:1px solid rgba(0,0,0,0.35);
-      background: rgba(255,255,255,0.35);
-      padding:6px 10px;
-      border-radius:999px;
-      white-space:nowrap;
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border:1px solid var(--border);
+      border-radius:999px; background:#fff; font-size:13px;
     }
-
-    .foot{
-      margin-top:10px;
-      font-size:12px;
-      opacity:0.85;
-      color:#222;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .foot code{ font-family: var(--mono); }
+    .pill input{transform:translateY(1px)}
+    .small{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
   </style>
 </head>
+
 <body>
-  <div class="device" role="application" aria-label="Vowel Nuker 95 Translator">
-    <div class="topbar">
-      <div class="brand">
-        <span class="dot" aria-hidden="true"></span>
-        VOWEL NUKER 95™
-      </div>
-      <div class="model">MODEL: VN-1996 • “CHEAP BUT LOUD” EDITION</div>
-    </div>
+  <div class="wrap">
+    <header>
+      <h1>-an Translator</h1>
+      <p>
+        Consonant-start → Pig Latin (consonant cluster) + <b>an</b>. Vowel-start (A/E/I/O/U/Y) → last letter to front + <b>an</b>.
+      </p>
+    </header>
 
-    <div class="screen-wrap">
-      <div class="screen">
-        <div class="row">
-          <div class="label">INPUT (Type English. We delete vowels. Deal with it.)</div>
-          <label class="toggle" title="If ON, keeps Y/y. If OFF, deletes Y/y too.">
-            <input id="keepY" type="checkbox" checked />
-            Keep Y/y
-          </label>
-        </div>
-
-        <div class="split">
-          <div>
-            <textarea id="inText" placeholder="Type here...">The car is broken and old. It's broken down in the driveway.</textarea>
-          </div>
-          <div>
-            <div class="label" style="margin:0 0 6px;">OUTPUT (Vowels deleted)</div>
-            <textarea id="outText" readonly placeholder="Output appears here..."></textarea>
-          </div>
-        </div>
+    <div class="grid">
+      <div class="card">
+        <label for="input">Input</label>
+        <textarea id="input" placeholder="Type here... e.g. I am always at home on Friday."></textarea>
 
         <div class="controls">
-          <div class="btns">
-            <button class="btn-primary btn-blue" id="btnTranslate">TRANSLATE</button>
-            <button class="btn-yellow" id="btnCopy">COPY OUTPUT</button>
-            <button class="btn-red" id="btnClear">CLEAR</button>
+          <div class="pill">
+            <input type="checkbox" id="live" checked>
+            <label for="live" style="margin:0;color:inherit;">Live translate</label>
           </div>
+          <button id="copyBtn" type="button">Copy output</button>
+          <button id="clearBtn" type="button">Clear</button>
+        </div>
 
-          <div class="status">
-            <span class="pill" id="countIn">IN: 0 chars</span>
-            <span class="pill" id="countOut">OUT: 0 chars</span>
-            <span class="pill" id="countV">VOWELS NUKED: 0</span>
-          </div>
+        <div class="small">
+          Examples:
+          <code>open → nopean</code>,
+          <code>you → uoyan</code>,
+          <code>Friday → idayfran</code>,
+          <code>street → eetstran</code>
         </div>
       </div>
-    </div>
 
-    <div class="foot">
-      <div>Rule: delete <code>AEIOU</code> (and <code>Y</code> if unchecked).</div>
-      <div>Tip: try no spaces for maximum chaos.</div>
+      <div class="card">
+        <label for="output">Output</label>
+        <textarea id="output" readonly placeholder="Output appears here..."></textarea>
+        <div class="small">
+          Rules: vowel-start (AEIOUY) length≥2 → rotate-last-to-front + <code>an</code>. Otherwise → move initial consonant cluster + <code>an</code>.
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    const inText = document.getElementById('inText');
-    const outText = document.getElementById('outText');
-    const keepY = document.getElementById('keepY');
+    const inputEl = document.getElementById("input");
+    const outputEl = document.getElementById("output");
+    const liveEl = document.getElementById("live");
+    const copyBtn = document.getElementById("copyBtn");
+    const clearBtn = document.getElementById("clearBtn");
 
-    const countIn = document.getElementById('countIn');
-    const countOut = document.getElementById('countOut');
-    const countV = document.getElementById('countV');
+    const VOWELS = new Set(["a","e","i","o","u","y"]);
 
-    const btnTranslate = document.getElementById('btnTranslate');
-    const btnCopy = document.getElementById('btnCopy');
-    const btnClear = document.getElementById('btnClear');
-
-    function translateNow() {
-      const src = inText.value ?? "";
-      const vowels = keepY.checked ? /[AEIOUaeiou]/g : /[AEIOUYaeiouy]/g;
-
-      const matches = src.match(vowels);
-      const nuked = matches ? matches.length : 0;
-
-      const out = src.replace(vowels, "_"); // DELETE vowels (no ~)
-
-      outText.value = out;
-
-      countIn.textContent = `IN: ${src.length} chars`;
-      countOut.textContent = `OUT: ${out.length} chars`;
-      countV.textContent = `VOWELS NUKED: ${nuked}`;
+    function isLetter(ch){
+      return /[A-Za-z]/.test(ch);
     }
 
-    async function copyOutput() {
-      const text = outText.value ?? "";
-      if (!text) return;
+    function isVowel(ch){
+      return VOWELS.has(ch.toLowerCase());
+    }
 
-      try {
-        await navigator.clipboard.writeText(text);
-        btnCopy.textContent = "COPIED!";
-        setTimeout(() => (btnCopy.textContent = "COPY OUTPUT"), 900);
-      } catch (e) {
-        outText.focus();
-        outText.select();
-        document.execCommand('copy');
-        btnCopy.textContent = "COPIED!";
-        setTimeout(() => (btnCopy.textContent = "COPY OUTPUT"), 900);
+    function preserveCase(originalWord, transformedLower){
+      const isAllCaps = originalWord === originalWord.toUpperCase();
+      const isTitle =
+        originalWord[0] === originalWord[0].toUpperCase() &&
+        originalWord.slice(1) === originalWord.slice(1).toLowerCase();
+
+      if (isAllCaps) return transformedLower.toUpperCase();
+      if (isTitle) return transformedLower[0].toUpperCase() + transformedLower.slice(1).toLowerCase();
+      return transformedLower; // default: keep as lower-ish result
+    }
+
+    // Extract leading punctuation, word, trailing punctuation
+    function splitToken(token){
+      const m = token.match(/^([^A-Za-z]*)([A-Za-z]+)([^A-Za-z]*)$/);
+      if (!m) return null;
+      return { lead: m[1], word: m[2], trail: m[3] };
+    }
+
+    // Pig Latin cluster: move initial consonant cluster to end, then + "an"
+    function consonantClusterTransform(word){
+      const lower = word.toLowerCase();
+
+      // Find index of first vowel (AEIOUY). Everything before is the consonant cluster.
+      let idx = 0;
+      while (idx < lower.length && !isVowel(lower[idx])) idx++;
+
+      // If no vowel found, treat whole word as cluster (still transforms)
+      const cluster = lower.slice(0, idx);
+      const rest = lower.slice(idx);
+
+      const transformed = (rest + cluster) + "an";
+      return preserveCase(word, transformed);
+    }
+
+    // Vowel-start: last letter to front + "an" (length >= 2)
+    function vowelStartTransform(word){
+      const lower = word.toLowerCase();
+      if (lower.length < 2) return word; // should not happen per calling logic
+      const transformed = (lower[lower.length - 1] + lower.slice(0, -1)) + "an";
+      return preserveCase(word, transformed);
+    }
+
+    function transformWord(word){
+      // Leave 1-letter words alone (you can change this if you want)
+      if (word.length < 2) return word;
+
+      if (isVowel(word[0])) return vowelStartTransform(word);
+      return consonantClusterTransform(word);
+    }
+
+    function translateText(text){
+      // Preserve exact whitespace by splitting into whitespace tokens + non-whitespace tokens
+      const tokens = text.match(/\s+|[^\s]+/g) || [];
+
+      return tokens.map(tok => {
+        if (/^\s+$/.test(tok)) return tok;
+
+        const parts = splitToken(tok);
+        if (!parts) return tok;
+
+        const { lead, word, trail } = parts;
+        const outWord = transformWord(word);
+        return lead + outWord + trail;
+      }).join("");
+    }
+
+    function update(){
+      outputEl.value = translateText(inputEl.value);
+    }
+
+    inputEl.addEventListener("input", () => {
+      if (liveEl.checked) update();
+    });
+
+    liveEl.addEventListener("change", () => {
+      if (liveEl.checked) update();
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText(outputEl.value);
+        copyBtn.textContent = "Copied!";
+        setTimeout(()=>copyBtn.textContent="Copy output", 900);
+      } catch(e){
+        alert("Copy failed (clipboard permission). You can manually select + copy.");
       }
-    }
+    });
 
-    function clearAll() {
-      inText.value = "";
-      outText.value = "";
-      translateNow();
-      inText.focus();
-    }
+    clearBtn.addEventListener("click", () => {
+      inputEl.value = "";
+      outputEl.value = "";
+      inputEl.focus();
+    });
 
-    inText.addEventListener('input', translateNow);
-    keepY.addEventListener('change', translateNow);
-
-    btnTranslate.addEventListener('click', translateNow);
-    btnCopy.addEventListener('click', copyOutput);
-    btnClear.addEventListener('click', clearAll);
-
-    translateNow();
+    update();
   </script>
 </body>
 </html>
