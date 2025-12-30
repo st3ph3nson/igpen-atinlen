@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DRIFT-7 Translator</title>
+  <title>DRIFT-CHAOS Translator</title>
   <style>
     :root{
       --bg:#0b132b; --card:#ffffff; --text:#0f172a; --muted:#64748b;
@@ -16,7 +16,7 @@
       background:linear-gradient(180deg,var(--bg),#111827);
       color:var(--text);
     }
-    .wrap{max-width:980px;margin:0 auto}
+    .wrap{max-width:1040px;margin:0 auto}
     header{color:#fff;margin-bottom:16px}
     header h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.3px}
     header p{margin:0;color:rgba(255,255,255,.75);font-size:14px;line-height:1.4}
@@ -56,39 +56,57 @@
     .pill input{transform:translateY(1px)}
     .small{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
     code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    .rules{margin-top:8px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+    input[type="range"]{width:160px}
+    input[type="text"]{
+      padding:8px 10px;border-radius:10px;border:1px solid var(--border);
+      font-size:13px; width:160px;
+      outline:none;
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <header>
-      <h1>DRIFT-7 Translator</h1>
+      <h1>DRIFT-CHAOS Translator</h1>
       <p>
-        Controlled chaos: consonant doubling + hood phonetic drift + (optional) vowel starvation + restricted leet + end-tag symbols.
+        Maximum layered mutation: shortcuts → drift → starvation → stutter → swaps → leet (3 $ @ ¥ 4 € #) → stamps.
       </p>
     </header>
 
     <div class="grid">
       <div class="card">
         <label for="input">Input</label>
-        <textarea id="input" placeholder="Type here... e.g. stay hungry and never get comfortable"></textarea>
+        <textarea id="input" placeholder="Type here..."></textarea>
 
         <div class="controls">
           <div class="pill"><input type="checkbox" id="live" checked><span>Live translate</span></div>
-          <div class="pill"><input type="checkbox" id="hard" checked><span>Hard mode (vowel starvation)</span></div>
-          <div class="pill"><input type="checkbox" id="double" checked><span>Consonant doubling</span></div>
-          <div class="pill"><input type="checkbox" id="leet" checked><span>Leet (3 $ @ ¥ 4 € #)</span></div>
+          <div class="pill"><input type="checkbox" id="hard" checked><span>Vowel starvation</span></div>
+          <div class="pill"><input type="checkbox" id="leet" checked><span>Leet set: 3 $ @ ¥ 4 € #</span></div>
+          <div class="pill"><input type="checkbox" id="chaos" checked><span>Chaos extras</span></div>
           <button id="copyBtn" type="button">Copy output</button>
           <button id="clearBtn" type="button">Clear</button>
         </div>
 
-        <div class="small rules">
-          Example target vibes:
-          <br><code>stay hungry and never get comfortable</code> → <code>sstay hhungr¥ n nnvr gget ccmfrtbl3</code>
-          <br><code>you know how it is out here</code> → <code>u kkn0? (we avoid 0) → u kkno hhow it iz out hhea</code>
-          <br>
-          Notes: we intentionally only use <code>3 $ @ ¥ 4 € #</code> for “leet” so it stays on-brand.
+        <div class="row">
+          <div class="pill">
+            <span>Chaos level</span>
+            <input type="range" id="level" min="0" max="10" value="8" />
+            <span id="levelVal" style="font-weight:800">8</span>
+          </div>
+
+          <div class="pill">
+            <span>Seed</span>
+            <input type="text" id="seed" value="DRIFT7" />
+          </div>
+        </div>
+
+        <div class="small">
+          Try:
+          <br><code>stay hungry and never get comfortable</code>
+          <br><code>you know how it is out here</code>
+          <br><code>I am at the house and tired</code>
         </div>
       </div>
 
@@ -96,13 +114,7 @@
         <label for="output">Output</label>
         <textarea id="output" readonly placeholder="Output appears here..."></textarea>
         <div class="small">
-          Pipeline order (important): <br/>
-          1) word shortcuts (you→u, your→ya, and→n, for→4) <br/>
-          2) hood drift (th→d, ing→n, er→a, is→iz…) <br/>
-          3) vowel starvation (optional) <br/>
-          4) consonant doubling (optional) <br/>
-          5) restricted leet (optional) <br/>
-          6) end-tag (y→¥, a→@, e→3)
+          Tip: “Chaos level” increases how often the extra mutations fire, but output stays deterministic via seed.
         </div>
       </div>
     </div>
@@ -113,123 +125,188 @@
     const outputEl = document.getElementById("output");
     const liveEl = document.getElementById("live");
     const hardEl = document.getElementById("hard");
-    const doubleEl = document.getElementById("double");
     const leetEl = document.getElementById("leet");
+    const chaosEl = document.getElementById("chaos");
+    const levelEl = document.getElementById("level");
+    const levelValEl = document.getElementById("levelVal");
+    const seedEl = document.getElementById("seed");
     const copyBtn = document.getElementById("copyBtn");
     const clearBtn = document.getElementById("clearBtn");
 
-    // --- DRIFT-7 CONFIG ---
-    // Stopwords (often NOT doubled, so sentence remains readable)
+    const VOWELS = new Set(["a","e","i","o","u"]);
+    const VOWELS_PLUS_Y = new Set(["a","e","i","o","u","y"]);
+
     const STOPWORDS = new Set([
       "a","an","the","to","of","in","on","at","for","and","or","but","if","then","so",
-      "i","me","my","you","ya","u","we","us","they","them","he","she","it",
-      "is","iz","am","are","was","were","be","been","being"
+      "i","me","my","you","your","ya","u","we","us","they","them","he","she","it",
+      "is","am","are","was","were","be","been","being","iz"
     ]);
 
-    function isLetter(ch){ return /[A-Za-z]/.test(ch); }
     function splitToken(token){
-      const m = token.match(/^([^A-Za-z]*)([A-Za-z']+)([^A-Za-z]*)$/);
+      const m = token.match(/^([^A-Za-z0-9]*)([A-Za-z']+|[0-9]+)([^A-Za-z0-9]*)$/);
       if (!m) return null;
       return { lead: m[1], word: m[2], trail: m[3] };
     }
 
-    // Lowercase output is part of the “coded DM” vibe.
-    // If you ever want title-case preservation back, we can add a toggle.
-    function normalizeWord(word){
-      return word.toLowerCase().replace(/[’]/g,"'");
+    // --- Deterministic pseudo-random based on word + seed ---
+    // Fast string hash (FNV-1a-ish)
+    function hash32(str){
+      let h = 0x811c9dc5;
+      for (let i=0;i<str.length;i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+      }
+      return h >>> 0;
+    }
+    // returns [0,1)
+    function rand01(key){
+      // xorshift
+      let x = hash32(key) || 1;
+      x ^= x << 13; x >>>= 0;
+      x ^= x >> 17; x >>>= 0;
+      x ^= x << 5;  x >>>= 0;
+      return (x >>> 0) / 4294967296;
+    }
+    function chance(p, key){
+      return rand01(key) < p;
     }
 
-    // 1) Word-level shortcuts (fast “hood lexicon”)
+    function normalizeWord(w){
+      return w.toLowerCase().replace(/[’]/g,"'");
+    }
+
+    // 1) Shortcuts: builds the “DM coded” skeleton fast
     function shortcuts(w){
-      // only match whole-word forms (handled word-by-word)
       const map = {
         "you": "u",
         "your": "ya",
         "you're": "ya",
         "and": "n",
         "for": "4",
-        "with": "wit",     // you can switch to "wid" if you want it harder
+        "with": "wit",
         "them": "dem",
         "this": "dis",
-        "that": "dat"
+        "that": "dat",
+        "out": "out",
+        "here": "hea",      // gives that “hhea/hea” vibe once chaos hits
+        "know": "kno"
       };
       return map[w] ?? w;
     }
 
-    // 2) Hood phonetic drift (pattern changes)
+    // 2) Drift rules
     function drift(w){
-      // operate on plain alphabetic-ish word
       let x = w;
 
-      // core drifts
-      x = x.replace(/th/g, "d");          // this -> dis
-      x = x.replace(/ing\b/g, "n");       // going -> gon
-      x = x.replace(/er\b/g, "a");        // other -> otha (after vowel starvation/leet it gets gnarly)
-      x = x.replace(/\bis\b/g, "iz");     // is -> iz
-
-      // optional extra drifts that feel natural
-      x = x.replace(/\bthem\b/g, "dem");
-      x = x.replace(/\bthe\b/g, "da");    // the -> da
-
+      x = x.replace(/th/g, "d");        // this -> dis
+      x = x.replace(/\bis\b/g, "iz");   // is -> iz
+      x = x.replace(/ing\b/g, "n");     // going -> gon
+      x = x.replace(/er\b/g, "a");      // never -> neva-ish (after starvation)
+      x = x.replace(/\bthe\b/g, "da");  // the -> da
+      x = x.replace(/tion\b/g, "shn");  // proposition -> proposishn (then starve it)
+      x = x.replace(/ck\b/g, "k");      // back -> bak
+      x = x.replace(/ght\b/g, "t");     // night -> nit
       return x;
     }
 
-    // 3) Vowel starvation (LOSSY). We do a conservative version so it stays readable.
-    // Rule: keep the first vowel you encounter, then delete most later vowels
-    // BUT don't starve short words.
-    function vowelStarve(w){
-      const V = new Set(["a","e","i","o","u"]);
+    // 3) Vowel starvation (lossy). Keep first vowel; later vowels mostly die.
+    function vowelStarve(w, key){
       if (w.length <= 4) return w;
-
-      let keptFirstVowel = false;
+      let keptFirst = false;
       let out = "";
 
       for (let i=0; i<w.length; i++){
         const ch = w[i];
-        const isV = V.has(ch);
+        const isV = VOWELS.has(ch);
 
-        if (!isV){
+        if (!isV){ out += ch; continue; }
+
+        if (!keptFirst){
           out += ch;
+          keptFirst = true;
           continue;
         }
 
-        // keep first vowel to anchor readability
-        if (!keptFirstVowel){
-          out += ch;
-          keptFirstVowel = true;
-          continue;
-        }
-
-        // keep vowel if deleting would create a brutal cluster (3+ consonants in a row)
-        const prev = out[out.length-1] || "";
-        const prev2 = out[out.length-2] || "";
-        const prevIsCon = prev && /[a-z]/.test(prev) && !V.has(prev);
-        const prev2IsCon = prev2 && /[a-z]/.test(prev2) && !V.has(prev2);
-
-        if (prevIsCon && prev2IsCon){
-          out += ch; // let one vowel survive
-        } // else: delete vowel
+        // keep some later vowels based on deterministic chance
+        // higher chaos level = fewer vowels survive
+        const lvl = +levelEl.value;
+        const keepProb = Math.max(0.05, 0.22 - (lvl * 0.015)); // lvl 0 -> ~.22, lvl 10 -> ~.07
+        if (chance(keepProb, key + "|v|" + i)) out += ch;
       }
 
       return out;
     }
 
-    // 4) Consonant doubling (first consonant only) for content words
-    function doubleFirstConsonant(w){
-      if (!w || w.length < 3) return w;
+    // 4) Consonant doubling / stutter (sstay, hhungry, ccmf...)
+    function doubleFront(w, key){
+      if (!w || w.length < 2) return w;
       if (STOPWORDS.has(w)) return w;
+      if (VOWELS_PLUS_Y.has(w[0])) return w;
 
-      const first = w[0];
-      const vowelsPlusY = new Set(["a","e","i","o","u","y"]);
-      if (vowelsPlusY.has(first)) return w;  // don't double vowel-start words
+      const lvl = +levelEl.value;
+      const baseP = 0.35 + lvl * 0.04; // 0.35 -> 0.75
+      if (!chance(Math.min(0.85, baseP), key + "|df")) return w;
 
-      return first + w;
+      // sometimes double first TWO consonants if they are consonants
+      const c1 = w[0];
+      const c2 = w[1] || "";
+      const canDouble2 = c2 && /[a-z]/.test(c2) && !VOWELS_PLUS_Y.has(c2);
+
+      if (canDouble2 && chance(0.45, key + "|df2")){
+        return c1 + c2 + w;
+      }
+      return c1 + w;
     }
 
-    // 5) Restricted leet (ONLY your symbols)
-    // E->3, S->$, A->@, Y->¥ ; (optional: "for" shortcut already becomes 4)
+    // 5) Cluster echo: if starts with a cluster like "str", echo the first letter (sstr…)
+    function clusterEcho(w, key){
+      if (w.length < 4) return w;
+      if (VOWELS_PLUS_Y.has(w[0])) return w;
+      const lvl = +levelEl.value;
+      const p = 0.10 + lvl * 0.03;
+      if (!chance(Math.min(0.55, p), key + "|ce")) return w;
+
+      // detect 2-3 consonant cluster
+      const a = w[0], b = w[1], c = w[2];
+      const bCon = b && !VOWELS_PLUS_Y.has(b);
+      const cCon = c && !VOWELS_PLUS_Y.has(c);
+
+      if (bCon && cCon) return a + w;      // s + street -> sstreet
+      if (bCon) return a + w;              // c + mf -> ccmf vibe
+      return w;
+    }
+
+    // 6) Internal stutter: repeat one internal consonant once
+    function internalStutter(w, key){
+      if (w.length < 5) return w;
+      const lvl = +levelEl.value;
+      const p = 0.08 + lvl * 0.03;
+      if (!chance(Math.min(0.50, p), key + "|is")) return w;
+
+      // pick an internal position deterministically
+      const pos = 2 + Math.floor(rand01(key + "|pos") * (w.length - 3));
+      const ch = w[pos];
+      if (!/[a-z]/.test(ch) || VOWELS_PLUS_Y.has(ch)) return w;
+
+      return w.slice(0,pos) + ch + w.slice(pos);
+    }
+
+    // 7) Micro swap: swap two neighboring letters once
+    function microSwap(w, key){
+      if (w.length < 5) return w;
+      const lvl = +levelEl.value;
+      const p = 0.06 + lvl * 0.02;
+      if (!chance(Math.min(0.35, p), key + "|ms")) return w;
+
+      const i = 1 + Math.floor(rand01(key + "|msi") * (w.length - 3));
+      const a = w[i], b = w[i+1];
+      if (!a || !b) return w;
+
+      return w.slice(0,i) + b + a + w.slice(i+2);
+    }
+
+    // 8) Restricted leet set: ONLY 3 $ @ ¥ 4 € #
     function leetify(w){
-      // keep it readable: don't transform every letter, only key ones.
       return w
         .replace(/e/g, "3")
         .replace(/s/g, "$")
@@ -237,59 +314,90 @@
         .replace(/y/g, "¥");
     }
 
-    // 6) End-tag: if the word ends in y/a/e, swap final letter to ¥/@/3
-    // This is redundant with leetify for those letters, BUT it guarantees the ending "stamp".
-    function endTag(w){
+    // 9) End-tag stamp: if ends in y/a/e -> replace with ¥/@/3 ; and sometimes add # or €
+    function endStamp(w, key){
       if (w.length < 2) return w;
 
-      const last = w[w.length-1];
-      if (last === "y") return w.slice(0,-1) + "¥";
-      if (last === "a") return w.slice(0,-1) + "@";
-      if (last === "e") return w.slice(0,-1) + "3";
-      return w;
+      let out = w;
+      const last = out[out.length-1];
+      if (last === "y") out = out.slice(0,-1) + "¥";
+      if (last === "a") out = out.slice(0,-1) + "@";
+      if (last === "e") out = out.slice(0,-1) + "3";
+
+      if (chaosEl.checked){
+        const lvl = +levelEl.value;
+        const p = 0.05 + lvl * 0.02;
+        if (chance(Math.min(0.30, p), key + "|stamp")){
+          out += chance(0.5, key + "|stamp2") ? "#" : "€";
+        }
+      }
+      return out;
     }
 
-    function translateWord(rawWord){
-      // handle apostrophes inside (don't split contractions too hard)
+    // Optional: drop trailing vowel sometimes (tightens look)
+    function dropTrailingVowel(w, key){
+      if (w.length < 4) return w;
+      const last = w[w.length-1];
+      if (!VOWELS.has(last)) return w;
+
+      const lvl = +levelEl.value;
+      const p = 0.10 + lvl * 0.03;
+      if (!chance(Math.min(0.55, p), key + "|dtv")) return w;
+
+      return w.slice(0,-1);
+    }
+
+    function translateWord(rawWord, index){
       let w = normalizeWord(rawWord);
 
-      // If the "word" has turned into a symbol (like 4), keep it as-is.
-      // But still allow endTag if it ends in letter.
-      // 1) shortcuts
+      // if it's a number token already (like 4), keep it
+      if (/^[0-9]+$/.test(w)) return w;
+
+      const seed = (seedEl.value || "DRIFT7").trim();
+      const key = seed + "|" + w + "|" + index;
+
+      // shortcuts
       w = shortcuts(w);
 
-      // If shortcut became purely non-letters (e.g., "4"), return it
-      if (!/[a-z]/.test(w)) return w;
+      // if shortcut became numeric (for -> 4), keep it
+      if (/^[0-9]+$/.test(w)) return w;
 
-      // 2) drift patterns
+      // drift
       w = drift(w);
 
-      // 3) vowel starvation (optional)
-      if (hardEl.checked) w = vowelStarve(w);
+      // vowel starvation
+      if (hardEl.checked) w = vowelStarve(w, key);
 
-      // 4) consonant doubling (optional)
-      if (doubleEl.checked) w = doubleFirstConsonant(w);
+      if (chaosEl.checked){
+        w = dropTrailingVowel(w, key);
+        w = clusterEcho(w, key);
+        w = doubleFront(w, key);
+        w = internalStutter(w, key);
+        w = microSwap(w, key);
+      } else {
+        // still keep the signature “double front” even if chaos extras off
+        w = doubleFront(w, key);
+      }
 
-      // 5) restricted leet (optional)
       if (leetEl.checked) w = leetify(w);
 
-      // 6) end-tag
-      w = endTag(w);
+      w = endStamp(w, key);
 
       return w;
     }
 
     function translateText(text){
       const tokens = text.match(/\s+|[^\s]+/g) || [];
+      let wordIndex = 0;
 
       return tokens.map(tok => {
         if (/^\s+$/.test(tok)) return tok;
 
         const parts = splitToken(tok);
-        if (!parts) return tok; // leave weird tokens untouched
+        if (!parts) return tok;
 
         const { lead, word, trail } = parts;
-        const outWord = translateWord(word);
+        const outWord = translateWord(word, wordIndex++);
         return lead + outWord + trail;
       }).join("");
     }
@@ -299,8 +407,13 @@
     }
 
     inputEl.addEventListener("input", () => { if (liveEl.checked) update(); });
-    [liveEl, hardEl, doubleEl, leetEl].forEach(el => {
+    [liveEl, hardEl, leetEl, chaosEl, levelEl, seedEl].forEach(el => {
       el.addEventListener("change", () => { if (liveEl.checked) update(); });
+      el.addEventListener("input", () => {
+        levelValEl.textContent = levelEl.value;
+        if (liveEl.checked) update();
+      });
+      el.addEventListener("keyup", () => { if (liveEl.checked) update(); });
     });
 
     copyBtn.addEventListener("click", async () => {
@@ -319,8 +432,9 @@
       inputEl.focus();
     });
 
-    // seed example
-    inputEl.value = "stay hungry and never get comfortable";
+    // seed demo text
+    inputEl.value = "stay hungry and never get comfortable. you know how it is out here.";
+    levelValEl.textContent = levelEl.value;
     update();
   </script>
 </body>
