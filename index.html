@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>en/eg Translator (Clusters + Vowel-Rotate)</title>
+  <title>DRIFT-7 Translator</title>
   <style>
     :root{
       --bg:#0b132b; --card:#ffffff; --text:#0f172a; --muted:#64748b;
@@ -29,7 +29,7 @@
     }
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
     textarea{
-      width:100%; min-height:220px; resize:vertical;
+      width:100%; min-height:240px; resize:vertical;
       padding:12px; border-radius:12px; border:1px solid var(--border);
       outline:none; font-size:14px; line-height:1.45;
     }
@@ -51,45 +51,44 @@
       display:inline-flex; gap:8px; align-items:center;
       padding:8px 10px; border:1px solid var(--border);
       border-radius:999px; background:#fff; font-size:13px;
+      user-select:none;
     }
     .pill input{transform:translateY(1px)}
     .small{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
     code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .rules{margin-top:8px}
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <header>
-      <h1>en/eg Translator</h1>
+      <h1>DRIFT-7 Translator</h1>
       <p>
-        Consonant-start → Pig Latin (consonant cluster) + <b>en</b>. <br/>
-        Vowel-start (A/E/I/O/U/Y) → last letter to front + <b>eg</b>.
+        Controlled chaos: consonant doubling + hood phonetic drift + (optional) vowel starvation + restricted leet + end-tag symbols.
       </p>
     </header>
 
     <div class="grid">
       <div class="card">
         <label for="input">Input</label>
-        <textarea id="input" placeholder="Type here... e.g. I am at the house and tired"></textarea>
+        <textarea id="input" placeholder="Type here... e.g. stay hungry and never get comfortable"></textarea>
 
         <div class="controls">
-          <div class="pill">
-            <input type="checkbox" id="live" checked>
-            <label for="live" style="margin:0;color:inherit;">Live translate</label>
-          </div>
+          <div class="pill"><input type="checkbox" id="live" checked><span>Live translate</span></div>
+          <div class="pill"><input type="checkbox" id="hard" checked><span>Hard mode (vowel starvation)</span></div>
+          <div class="pill"><input type="checkbox" id="double" checked><span>Consonant doubling</span></div>
+          <div class="pill"><input type="checkbox" id="leet" checked><span>Leet (3 $ @ ¥ 4 € #)</span></div>
           <button id="copyBtn" type="button">Copy output</button>
           <button id="clearBtn" type="button">Clear</button>
         </div>
 
-        <div class="small">
-          Examples:
-          <code>open → nopeeg</code>,
-          <code>and → daneg</code>,
-          <code>I → Ieg</code>,
-          <code>you → uoyeg</code>,
-          <code>Friday → idayFren</code>,
-          <code>street → eetstren</code>
+        <div class="small rules">
+          Example target vibes:
+          <br><code>stay hungry and never get comfortable</code> → <code>sstay hhungr¥ n nnvr gget ccmfrtbl3</code>
+          <br><code>you know how it is out here</code> → <code>u kkn0? (we avoid 0) → u kkno hhow it iz out hhea</code>
+          <br>
+          Notes: we intentionally only use <code>3 $ @ ¥ 4 € #</code> for “leet” so it stays on-brand.
         </div>
       </div>
 
@@ -97,7 +96,13 @@
         <label for="output">Output</label>
         <textarea id="output" readonly placeholder="Output appears here..."></textarea>
         <div class="small">
-          Rules: vowel-start → rotate + <code>eg</code>. consonant-start → move initial consonant cluster + <code>en</code>.
+          Pipeline order (important): <br/>
+          1) word shortcuts (you→u, your→ya, and→n, for→4) <br/>
+          2) hood drift (th→d, ing→n, er→a, is→iz…) <br/>
+          3) vowel starvation (optional) <br/>
+          4) consonant doubling (optional) <br/>
+          5) restricted leet (optional) <br/>
+          6) end-tag (y→¥, a→@, e→3)
         </div>
       </div>
     </div>
@@ -107,78 +112,171 @@
     const inputEl = document.getElementById("input");
     const outputEl = document.getElementById("output");
     const liveEl = document.getElementById("live");
+    const hardEl = document.getElementById("hard");
+    const doubleEl = document.getElementById("double");
+    const leetEl = document.getElementById("leet");
     const copyBtn = document.getElementById("copyBtn");
     const clearBtn = document.getElementById("clearBtn");
 
-    const VOWELS = new Set(["a","e","i","o","u","y"]);
+    // --- DRIFT-7 CONFIG ---
+    // Stopwords (often NOT doubled, so sentence remains readable)
+    const STOPWORDS = new Set([
+      "a","an","the","to","of","in","on","at","for","and","or","but","if","then","so",
+      "i","me","my","you","ya","u","we","us","they","them","he","she","it",
+      "is","iz","am","are","was","were","be","been","being"
+    ]);
 
-    function isVowel(ch){
-      return VOWELS.has(ch.toLowerCase());
-    }
-
-    // Split token into leading punctuation, word, trailing punctuation
+    function isLetter(ch){ return /[A-Za-z]/.test(ch); }
     function splitToken(token){
-      const m = token.match(/^([^A-Za-z]*)([A-Za-z]+)([^A-Za-z]*)$/);
+      const m = token.match(/^([^A-Za-z]*)([A-Za-z']+)([^A-Za-z]*)$/);
       if (!m) return null;
       return { lead: m[1], word: m[2], trail: m[3] };
     }
 
-    // Consonant-start: move initial consonant cluster to end + "en"
-    function consonantClusterTransform(word){
-      const lower = word.toLowerCase();
-
-      // index of first vowel; everything before it is the cluster
-      let idx = 0;
-      while (idx < lower.length && !isVowel(lower[idx])) idx++;
-
-      const cluster = lower.slice(0, idx);
-      const rest = lower.slice(idx);
-
-      // If no vowel exists, keep the word but still add "en" (optional; change if you want)
-      const core = (idx === lower.length) ? lower : (rest + cluster);
-
-      // Case handling:
-      // - ALLCAPS => whole result uppercase
-      // - Titlecase => keep first letter caps, rest lower
-      const isAllCaps = word === word.toUpperCase();
-      const isTitle =
-        word[0] === word[0].toUpperCase() &&
-        word.slice(1) === word.slice(1).toLowerCase();
-
-      const outLower = core + "en";
-
-      if (isAllCaps) return outLower.toUpperCase();
-      if (isTitle) return outLower[0].toUpperCase() + outLower.slice(1);
-      return outLower;
+    // Lowercase output is part of the “coded DM” vibe.
+    // If you ever want title-case preservation back, we can add a toggle.
+    function normalizeWord(word){
+      return word.toLowerCase().replace(/[’]/g,"'");
     }
 
-    // Vowel-start: last letter to front + "eg"
-    // IMPORTANT: do NOT capitalize "EG" for all-caps words; keep suffix "eg" as-is.
-    function vowelStartTransform(word){
-      const lower = word.toLowerCase();
+    // 1) Word-level shortcuts (fast “hood lexicon”)
+    function shortcuts(w){
+      // only match whole-word forms (handled word-by-word)
+      const map = {
+        "you": "u",
+        "your": "ya",
+        "you're": "ya",
+        "and": "n",
+        "for": "4",
+        "with": "wit",     // you can switch to "wid" if you want it harder
+        "them": "dem",
+        "this": "dis",
+        "that": "dat"
+      };
+      return map[w] ?? w;
+    }
 
-      const rotated = (lower.length === 1)
-        ? lower
-        : (lower[lower.length - 1] + lower.slice(0, -1));
+    // 2) Hood phonetic drift (pattern changes)
+    function drift(w){
+      // operate on plain alphabetic-ish word
+      let x = w;
 
-      const withSuffix = rotated + "eg";
+      // core drifts
+      x = x.replace(/th/g, "d");          // this -> dis
+      x = x.replace(/ing\b/g, "n");       // going -> gon
+      x = x.replace(/er\b/g, "a");        // other -> otha (after vowel starvation/leet it gets gnarly)
+      x = x.replace(/\bis\b/g, "iz");     // is -> iz
 
-      // Preserve ONLY the original first-letter style, but NEVER all-caps the whole output.
-      const isTitle =
-        word[0] === word[0].toUpperCase() &&
-        word.slice(1) === word.slice(1).toLowerCase();
+      // optional extra drifts that feel natural
+      x = x.replace(/\bthem\b/g, "dem");
+      x = x.replace(/\bthe\b/g, "da");    // the -> da
 
-      if (isTitle) return withSuffix[0].toUpperCase() + withSuffix.slice(1); // "Open" -> "Nopeeg"
-      if (word[0] === word[0].toUpperCase()) {
-        // For things like "I" or "USA": only keep the first letter cap, not whole word
-        return withSuffix[0].toUpperCase() + withSuffix.slice(1);
+      return x;
+    }
+
+    // 3) Vowel starvation (LOSSY). We do a conservative version so it stays readable.
+    // Rule: keep the first vowel you encounter, then delete most later vowels
+    // BUT don't starve short words.
+    function vowelStarve(w){
+      const V = new Set(["a","e","i","o","u"]);
+      if (w.length <= 4) return w;
+
+      let keptFirstVowel = false;
+      let out = "";
+
+      for (let i=0; i<w.length; i++){
+        const ch = w[i];
+        const isV = V.has(ch);
+
+        if (!isV){
+          out += ch;
+          continue;
+        }
+
+        // keep first vowel to anchor readability
+        if (!keptFirstVowel){
+          out += ch;
+          keptFirstVowel = true;
+          continue;
+        }
+
+        // keep vowel if deleting would create a brutal cluster (3+ consonants in a row)
+        const prev = out[out.length-1] || "";
+        const prev2 = out[out.length-2] || "";
+        const prevIsCon = prev && /[a-z]/.test(prev) && !V.has(prev);
+        const prev2IsCon = prev2 && /[a-z]/.test(prev2) && !V.has(prev2);
+
+        if (prevIsCon && prev2IsCon){
+          out += ch; // let one vowel survive
+        } // else: delete vowel
       }
-      return withSuffix;
+
+      return out;
     }
 
-    function transformWord(word){
-      if (isVowel(word[0])) return vowelStartTransform(word);
-      return consonantClusterTransform(word);
+    // 4) Consonant doubling (first consonant only) for content words
+    function doubleFirstConsonant(w){
+      if (!w || w.length < 3) return w;
+      if (STOPWORDS.has(w)) return w;
+
+      const first = w[0];
+      const vowelsPlusY = new Set(["a","e","i","o","u","y"]);
+      if (vowelsPlusY.has(first)) return w;  // don't double vowel-start words
+
+      return first + w;
+    }
+
+    // 5) Restricted leet (ONLY your symbols)
+    // E->3, S->$, A->@, Y->¥ ; (optional: "for" shortcut already becomes 4)
+    function leetify(w){
+      // keep it readable: don't transform every letter, only key ones.
+      return w
+        .replace(/e/g, "3")
+        .replace(/s/g, "$")
+        .replace(/a/g, "@")
+        .replace(/y/g, "¥");
+    }
+
+    // 6) End-tag: if the word ends in y/a/e, swap final letter to ¥/@/3
+    // This is redundant with leetify for those letters, BUT it guarantees the ending "stamp".
+    function endTag(w){
+      if (w.length < 2) return w;
+
+      const last = w[w.length-1];
+      if (last === "y") return w.slice(0,-1) + "¥";
+      if (last === "a") return w.slice(0,-1) + "@";
+      if (last === "e") return w.slice(0,-1) + "3";
+      return w;
+    }
+
+    function translateWord(rawWord){
+      // handle apostrophes inside (don't split contractions too hard)
+      let w = normalizeWord(rawWord);
+
+      // If the "word" has turned into a symbol (like 4), keep it as-is.
+      // But still allow endTag if it ends in letter.
+      // 1) shortcuts
+      w = shortcuts(w);
+
+      // If shortcut became purely non-letters (e.g., "4"), return it
+      if (!/[a-z]/.test(w)) return w;
+
+      // 2) drift patterns
+      w = drift(w);
+
+      // 3) vowel starvation (optional)
+      if (hardEl.checked) w = vowelStarve(w);
+
+      // 4) consonant doubling (optional)
+      if (doubleEl.checked) w = doubleFirstConsonant(w);
+
+      // 5) restricted leet (optional)
+      if (leetEl.checked) w = leetify(w);
+
+      // 6) end-tag
+      w = endTag(w);
+
+      return w;
     }
 
     function translateText(text){
@@ -188,10 +286,11 @@
         if (/^\s+$/.test(tok)) return tok;
 
         const parts = splitToken(tok);
-        if (!parts) return tok;
+        if (!parts) return tok; // leave weird tokens untouched
 
         const { lead, word, trail } = parts;
-        return lead + transformWord(word) + trail;
+        const outWord = translateWord(word);
+        return lead + outWord + trail;
       }).join("");
     }
 
@@ -199,12 +298,9 @@
       outputEl.value = translateText(inputEl.value);
     }
 
-    inputEl.addEventListener("input", () => {
-      if (liveEl.checked) update();
-    });
-
-    liveEl.addEventListener("change", () => {
-      if (liveEl.checked) update();
+    inputEl.addEventListener("input", () => { if (liveEl.checked) update(); });
+    [liveEl, hardEl, doubleEl, leetEl].forEach(el => {
+      el.addEventListener("change", () => { if (liveEl.checked) update(); });
     });
 
     copyBtn.addEventListener("click", async () => {
@@ -223,6 +319,8 @@
       inputEl.focus();
     });
 
+    // seed example
+    inputEl.value = "stay hungry and never get comfortable";
     update();
   </script>
 </body>
