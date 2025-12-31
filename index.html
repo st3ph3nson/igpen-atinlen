@@ -135,12 +135,13 @@
 
     // ============================================================
     // CUSTOM OVERRIDES (EDIT THIS)
-    // Keys must be lowercase. Overrides ignore all other rules.
+    // Keys must be lowercase.
+    // If a key matches, it RETURNS IMMEDIATELY and ignores all other rules.
     // ============================================================
     const OVERRIDES = {
       // "grace": "groce",
       // "lord": "lard",
-      // "the": "Þe"
+      "the": "þe"   // example: the -> þe (and The -> Þe, THE -> ÞE)
     };
 
     // vowel swaps
@@ -160,6 +161,10 @@
       return { lead: m[1], word: m[2], trail: m[3] };
     }
 
+    // Applies the CASE STYLE of the original word to the mapped word:
+    // - ALL CAPS stays ALL CAPS
+    // - Title Case stays Title Case
+    // - Otherwise: leave mappedWord as-is (DON'T force lowercase)
     function applyCaseStyle(originalWord, mappedWord){
       const isAllCaps = originalWord === originalWord.toUpperCase();
       const isTitleCase =
@@ -167,8 +172,8 @@
         originalWord.slice(1) === originalWord.slice(1).toLowerCase();
 
       if (isAllCaps) return mappedWord.toUpperCase();
-      if (isTitleCase) return mappedWord[0].toUpperCase() + mappedWord.slice(1).toLowerCase();
-      return mappedWord.toLowerCase();
+      if (isTitleCase) return mappedWord[0].toUpperCase() + mappedWord.slice(1);
+      return mappedWord; // <-- key change: don't auto-lowercase overrides
     }
 
     function preserveCharCase(originalChar, mappedChar){
@@ -200,7 +205,7 @@
     function driftWord(word){
       const lw = word.toLowerCase();
 
-      // 1) overrides
+      // 1) OVERRIDES FIRST (hard short-circuit)
       if (Object.prototype.hasOwnProperty.call(OVERRIDES, lw)){
         return applyCaseStyle(word, OVERRIDES[lw]);
       }
