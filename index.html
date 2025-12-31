@@ -187,12 +187,12 @@
 
     // Special rule: if word ends with ...de (case-insensitive), drop the final e.
     // Do this BEFORE vowel swaps so ride -> rid (not ridi).
-    function dropFinalEAfterD(word){
+    function dropFinalEAfterDOrG(word){
       if (word.length < 2) return word;
       const last = word[word.length - 1];
       const prev = word[word.length - 2];
       const isE = (last === "e" || last === "E");
-      const isD = (prev === "d" || prev === "D");
+      const isD = (prev === "d" || prev === "D" || prev === "g" || prev === "G");
       if (isD && isE) return word.slice(0, -1);
       return word;
     }
