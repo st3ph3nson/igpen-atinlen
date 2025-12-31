@@ -224,14 +224,14 @@
       // 4) TH -> þ
       w = thToThorn(w);
 
-      // 5) char-level mapping: W->V and vowel swaps
+      // 5) char-level mapping: W->ƿ and vowel swaps
       let out = "";
       for (const ch of w){
         const low = ch.toLowerCase();
 
-        // W -> V
+        // W -> ƿ 
         if (low === "w"){
-          out += preserveCharCase(ch, "v");
+          out += preserveCharCase(ch, "ƿ");
           continue;
         }
 
