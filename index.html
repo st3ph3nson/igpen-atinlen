@@ -87,13 +87,13 @@
   <div class="wrap">
     <header>
       <h1>Nordic Drift Translator</h1>
-      <p>Applies a controlled drift to English text (case-preserving, punctuation-safe).</p>
+      <p>Applies a controlled phonetic drift to English text (case-preserving, punctuation-safe).</p>
     </header>
 
     <div class="grid">
       <div class="card">
         <label for="input">Input</label>
-        <textarea id="input" placeholder="Type here... e.g. Thee Outside fore"></textarea>
+        <textarea id="input" placeholder="Type here... e.g. Thee art, outside, ride, grace"></textarea>
 
         <div class="controls">
           <div class="pill">
@@ -108,11 +108,14 @@
           Rules:
           <code>Overrides dictionary first</code>,
           <code>outside→aytsed</code>,
-          <code>delete e after d</code>,
-          <code>E↔I everywhere</code>,
-          <code>if word ends in E and becomes ...i, drop final i</code>
+          <code>W→V</code>,
+          <code>TH→þ</code>,
+          <code>I↔E</code>,
+          <code>A↔O</code>,
+          <code>Y↔U</code>,
+          <code>special: word ends in "de" → drop final e (ride→rid)</code>
           <br/>
-          Example: <code>Thee Outside fore</code> → <code>Thii Aytsed for</code>
+          Example: <code>Thee art</code> → <code>Thii ort</code>
         </div>
       </div>
 
@@ -132,16 +135,18 @@
 
     // ============================================================
     // CUSTOM OVERRIDES (EDIT THIS)
-    // Keys must be lowercase.
-    // These run FIRST and ignore all other rules.
+    // Keys must be lowercase. Overrides ignore all other rules.
     // ============================================================
     const OVERRIDES = {
       // "grace": "groce",
-      // "thee": "thii"
+      // "lord": "lard"
     };
 
+    // vowel swaps
     const VOWEL_SWAP = {
-      e: "i", i: "e"
+      a:"o", o:"a",
+      i:"e", e:"i",
+      y:"u", u:"y"
     };
 
     function splitPreserveWhitespace(text){
@@ -155,8 +160,6 @@
     }
 
     function applyCaseStyle(originalWord, mappedWord){
-      if (!mappedWord) return mappedWord;
-
       const isAllCaps = originalWord === originalWord.toUpperCase();
       const isTitleCase =
         originalWord[0] === originalWord[0].toUpperCase() &&
@@ -173,42 +176,24 @@
         : mappedChar;
     }
 
-    function deleteEAfterD(word){
-      // delete 'e' when it immediately follows 'd' (de -> d)
-      let out = "";
-      for (let i = 0; i < word.length; i++){
-        const ch = word[i];
-        const prev = word[i - 1];
-        if ((ch === "e" || ch === "E") && (prev === "d" || prev === "D")) continue;
-        out += ch;
-      }
-      return out;
+    // Special rule: if word ends with ...de (case-insensitive), drop the final e.
+    // Do this BEFORE vowel swaps so ride -> rid (not ridi).
+    function dropFinalEAfterD(word){
+      if (word.length < 2) return word;
+      const last = word[word.length - 1];
+      const prev = word[word.length - 2];
+      const isE = (last === "e" || last === "E");
+      const isD = (prev === "d" || prev === "D");
+      if (isD && isE) return word.slice(0, -1);
+      return word;
     }
 
-    function swapEandI(word){
-      let out = "";
-      for (const ch of word){
-        const low = ch.toLowerCase();
-        if (VOWEL_SWAP[low]){
-          out += preserveCharCase(ch, VOWEL_SWAP[low]);
-        } else {
-          out += ch;
-        }
-      }
-      return out;
-    }
-
-    function dropFinalIIfCameFromFinalE(originalWord, transformedWord){
-      // If original ended with e/E AND transformed ends with i/I, drop that last i/I.
-      const origLast = originalWord[originalWord.length - 1];
-      const transLast = transformedWord[transformedWord.length - 1];
-      const origEndsE = (origLast === "e" || origLast === "E");
-      const transEndsI = (transLast === "i" || transLast === "I");
-
-      if (origEndsE && transEndsI){
-        return transformedWord.slice(0, -1);
-      }
-      return transformedWord;
+    // TH -> þ (case-aware on first letter)
+    function thToThorn(word){
+      return word.replace(/th/gi, (match) => {
+        const first = match[0];
+        return (first === first.toUpperCase()) ? "Þ" : "þ";
+      });
     }
 
     function driftWord(word){
@@ -224,16 +209,33 @@
         return applyCaseStyle(word, "aytsed");
       }
 
-      // 3) delete e after d
-      const afterDelete = deleteEAfterD(word);
+      // 3) special: ...de -> ...d
+      let w = dropFinalEAfterD(word);
 
-      // 4) E↔I everywhere
-      const swapped = swapEandI(afterDelete);
+      // 4) TH -> þ
+      w = thToThorn(w);
 
-      // 5) final rule: if original ended in E and would become ...I, drop last letter
-      const finalForm = dropFinalIIfCameFromFinalE(word, swapped);
+      // 5) char-level mapping: W->V and vowel swaps
+      let out = "";
+      for (const ch of w){
+        const low = ch.toLowerCase();
 
-      return finalForm;
+        // W -> V
+        if (low === "w"){
+          out += preserveCharCase(ch, "v");
+          continue;
+        }
+
+        // vowel swaps
+        if (VOWEL_SWAP[low]){
+          out += preserveCharCase(ch, VOWEL_SWAP[low]);
+          continue;
+        }
+
+        out += ch;
+      }
+
+      return out;
     }
 
     function translateText(text){
@@ -241,6 +243,7 @@
 
       return tokens.map(tok => {
         if (/^\s+$/.test(tok)) return tok;
+
         const parts = splitToken(tok);
         if (!parts) return tok;
 
