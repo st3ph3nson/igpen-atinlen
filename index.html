@@ -3,35 +3,44 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DRIFT-CHAOS Translator</title>
+  <title>Nordic Drift Translator</title>
+
   <style>
     :root{
-      --bg:#0b132b; --card:#ffffff; --text:#0f172a; --muted:#64748b;
-      --border:rgba(15,23,42,.15); --accent:#38bdf8;
+      --bg:#0b132b;
+      --panel:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:rgba(15,23,42,.14);
+      --accent:#38bdf8;
+      --shadow:0 18px 45px rgba(0,0,0,.18);
     }
     *{box-sizing:border-box}
     body{
-      margin:0; padding:24px;
+      margin:0; padding:28px;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       background:linear-gradient(180deg,var(--bg),#111827);
       color:var(--text);
     }
-    .wrap{max-width:1040px;margin:0 auto}
+    .wrap{max-width:1020px;margin:0 auto}
     header{color:#fff;margin-bottom:16px}
-    header h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.3px}
-    header p{margin:0;color:rgba(255,255,255,.75);font-size:14px;line-height:1.4}
+    header h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.25px}
+    header p{margin:0;color:rgba(255,255,255,.75);font-size:14px;line-height:1.45}
     .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    @media(min-width:920px){.grid{grid-template-columns:1fr 1fr}}
     .card{
-      background:var(--card); border:1px solid var(--border);
-      border-radius:14px; padding:14px;
-      box-shadow:0 18px 45px rgba(0,0,0,.18);
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:var(--shadow);
     }
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
     textarea{
       width:100%; min-height:240px; resize:vertical;
-      padding:12px; border-radius:12px; border:1px solid var(--border);
-      outline:none; font-size:14px; line-height:1.45;
+      padding:12px; border-radius:12px;
+      border:1px solid var(--border);
+      outline:none; font-size:14px; line-height:1.5;
     }
     textarea:focus{
       border-color:rgba(56,189,248,.65);
@@ -39,9 +48,14 @@
     }
     .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
     button{
-      appearance:none; border:1px solid var(--border); background:#fff;
-      padding:9px 12px; border-radius:12px; font-weight:700;
-      cursor:pointer; font-size:13px;
+      appearance:none;
+      border:1px solid var(--border);
+      background:#fff;
+      padding:9px 12px;
+      border-radius:12px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:13px;
     }
     button:hover{
       border-color:rgba(56,189,248,.75);
@@ -49,19 +63,22 @@
     }
     .pill{
       display:inline-flex; gap:8px; align-items:center;
-      padding:8px 10px; border:1px solid var(--border);
-      border-radius:999px; background:#fff; font-size:13px;
-      user-select:none;
+      padding:8px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:#fff;
+      font-size:13px;
     }
     .pill input{transform:translateY(1px)}
-    .small{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
-    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
-    input[type="range"]{width:160px}
-    input[type="text"]{
-      padding:8px 10px;border-radius:10px;border:1px solid var(--border);
-      font-size:13px; width:160px;
-      outline:none;
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:10px;
+      line-height:1.45;
+    }
+    code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:12px;
     }
   </style>
 </head>
@@ -69,44 +86,36 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>DRIFT-CHAOS Translator</h1>
+      <h1>Nordic Drift Translator</h1>
       <p>
-        Maximum layered mutation: shortcuts → drift → starvation → stutter → swaps → leet (3 $ @ ¥ 4 € #) → stamps.
+        Applies a controlled phonetic drift to English text (case-preserving, punctuation-safe).
       </p>
     </header>
 
     <div class="grid">
       <div class="card">
         <label for="input">Input</label>
-        <textarea id="input" placeholder="Type here..."></textarea>
+        <textarea id="input" placeholder="Type here... e.g. I am driving to the store with my son."></textarea>
 
         <div class="controls">
-          <div class="pill"><input type="checkbox" id="live" checked><span>Live translate</span></div>
-          <div class="pill"><input type="checkbox" id="hard" checked><span>Vowel starvation</span></div>
-          <div class="pill"><input type="checkbox" id="leet" checked><span>Leet set: 3 $ @ ¥ 4 € #</span></div>
-          <div class="pill"><input type="checkbox" id="chaos" checked><span>Chaos extras</span></div>
+          <div class="pill">
+            <input type="checkbox" id="live" checked />
+            <label for="live" style="margin:0;color:inherit;">Live translate</label>
+          </div>
           <button id="copyBtn" type="button">Copy output</button>
           <button id="clearBtn" type="button">Clear</button>
         </div>
 
-        <div class="row">
-          <div class="pill">
-            <span>Chaos level</span>
-            <input type="range" id="level" min="0" max="10" value="8" />
-            <span id="levelVal" style="font-weight:800">8</span>
-          </div>
-
-          <div class="pill">
-            <span>Seed</span>
-            <input type="text" id="seed" value="DRIFT7" />
-          </div>
-        </div>
-
         <div class="small">
-          Try:
-          <br><code>stay hungry and never get comfortable</code>
-          <br><code>you know how it is out here</code>
-          <br><code>I am at the house and tired</code>
+          Rules:
+          <code>W→V</code>,
+          <code>TH→D</code>,
+          <code>I↔E</code>,
+          <code>A↔O</code>,
+          <code>Y↔U</code>,
+          <code>H removed between nouns</code>
+          <br/>
+          Example: <code>I am driving to the store with my son.</code> → <code>E om dreveng ta di stari ved mu san.</code>
         </div>
       </div>
 
@@ -114,282 +123,188 @@
         <label for="output">Output</label>
         <textarea id="output" readonly placeholder="Output appears here..."></textarea>
         <div class="small">
-          Tip: “Chaos level” increases how often the extra mutations fire, but output stays deterministic via seed.
+          Note: “H removed between nouns” uses a lightweight heuristic (capitalized/proper nouns and common noun patterns).
+          You can tune it in the code if you want it stricter or looser.
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const inputEl = document.getElementById("input");
+    const inputEl  = document.getElementById("input");
     const outputEl = document.getElementById("output");
-    const liveEl = document.getElementById("live");
-    const hardEl = document.getElementById("hard");
-    const leetEl = document.getElementById("leet");
-    const chaosEl = document.getElementById("chaos");
-    const levelEl = document.getElementById("level");
-    const levelValEl = document.getElementById("levelVal");
-    const seedEl = document.getElementById("seed");
-    const copyBtn = document.getElementById("copyBtn");
+    const liveEl   = document.getElementById("live");
+    const copyBtn  = document.getElementById("copyBtn");
     const clearBtn = document.getElementById("clearBtn");
 
-    const VOWELS = new Set(["a","e","i","o","u"]);
-    const VOWELS_PLUS_Y = new Set(["a","e","i","o","u","y"]);
+    // --- Core mappings ---
+    // Vowel swaps: I↔E, A↔O, Y↔U
+    const VOWEL_SWAP = {
+      a: "o", o: "a",
+      i: "e", e: "i",
+      y: "u", u: "y"
+    };
 
-    const STOPWORDS = new Set([
-      "a","an","the","to","of","in","on","at","for","and","or","but","if","then","so",
-      "i","me","my","you","your","ya","u","we","us","they","them","he","she","it",
-      "is","am","are","was","were","be","been","being","iz"
-    ]);
+    // Helpers
+    function isLetter(ch){ return /[A-Za-z]/.test(ch); }
 
+    function preserveCase(originalChar, mappedChar){
+      // mappedChar may be multi-letter in some future expansions; keep it simple here
+      if (originalChar === originalChar.toUpperCase()){
+        return mappedChar.toUpperCase();
+      }
+      return mappedChar;
+    }
+
+    // Tokenize into whitespace vs non-whitespace, preserving exact spacing
+    function splitPreserveWhitespace(text){
+      return text.match(/\s+|[^\s]+/g) || [];
+    }
+
+    // Split a token into leading punctuation + core word (letters/apostrophes) + trailing punctuation
+    // e.g., `"store,"` -> lead="" word="store" trail=","
     function splitToken(token){
-      const m = token.match(/^([^A-Za-z0-9]*)([A-Za-z']+|[0-9]+)([^A-Za-z0-9]*)$/);
-      if (!m) return null;
+      const m = token.match(/^([^A-Za-z]*)([A-Za-z]+(?:'[A-Za-z]+)*)?([^A-Za-z]*)$/);
+      if (!m || !m[2]) return null;
       return { lead: m[1], word: m[2], trail: m[3] };
     }
 
-    // --- Deterministic pseudo-random based on word + seed ---
-    // Fast string hash (FNV-1a-ish)
-    function hash32(str){
-      let h = 0x811c9dc5;
-      for (let i=0;i<str.length;i++){
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 0x01000193);
-      }
-      return h >>> 0;
-    }
-    // returns [0,1)
-    function rand01(key){
-      // xorshift
-      let x = hash32(key) || 1;
-      x ^= x << 13; x >>>= 0;
-      x ^= x >> 17; x >>>= 0;
-      x ^= x << 5;  x >>>= 0;
-      return (x >>> 0) / 4294967296;
-    }
-    function chance(p, key){
-      return rand01(key) < p;
+    // Very lightweight noun heuristic for the "H removed between nouns" rule.
+    // "noun" here means:
+    //  - capitalized word (likely proper noun), OR
+    //  - common noun-ish endings, OR
+    //  - preceded by an article (a/an/the after drift not applied yet), OR
+    //  - simple plural / common noun patterns
+    function looksLikeNoun(rawWord, prevRawWord){
+      const w = rawWord;
+      const lw = rawWord.toLowerCase();
+      const prev = (prevRawWord || "").toLowerCase();
+
+      const isCapitalized = w[0] === w[0].toUpperCase() && w.slice(1) !== w.slice(1).toUpperCase();
+      const commonNounEndings = /(s|es|ion|ions|ment|ments|ness|ship|ships|hood|hoods|er|ers|or|ors|ist|ists|ity|ities)$/.test(lw);
+      const likelyThingWord = /(house|car|store|road|bag|game|work|home|son|daughter|dog|coffee|church|traffic)$/.test(lw);
+      const precededByArticle = /^(a|an|the)$/.test(prev);
+
+      return isCapitalized || commonNounEndings || likelyThingWord || precededByArticle;
     }
 
-    function normalizeWord(w){
-      return w.toLowerCase().replace(/[’]/g,"'");
-    }
+    // Apply "H removed between nouns":
+    // if token sequence is [NOUN][H][NOUN] where H is a standalone "h"/"H" token between two words,
+    // remove that token.
+    //
+    // Because normal English writing rarely isolates "h" as its own word, this feature is mainly for
+    // texts where you *intentionally* insert H between nouns (e.g., "road h house").
+    //
+    // If you meant something different (like removing 'h' inside a compound like "roadhouse"),
+    // tell me and I’ll adjust the logic.
+    function removeHBetweenNouns(tokens){
+      // tokens are original tokens (with punctuation)
+      const out = [];
+      for (let i = 0; i < tokens.length; i++){
+        const tok = tokens[i];
 
-    // 1) Shortcuts: builds the “DM coded” skeleton fast
-    function shortcuts(w){
-      const map = {
-        "you": "u",
-        "your": "ya",
-        "you're": "ya",
-        "and": "n",
-        "for": "4",
-        "with": "wit",
-        "them": "dem",
-        "this": "dis",
-        "that": "dat",
-        "out": "out",
-        "here": "hea",      // gives that “hhea/hea” vibe once chaos hits
-        "know": "kno"
-      };
-      return map[w] ?? w;
-    }
-
-    // 2) Drift rules
-    function drift(w){
-      let x = w;
-
-      x = x.replace(/th/g, "d");        // this -> dis
-      x = x.replace(/\bis\b/g, "iz");   // is -> iz
-      x = x.replace(/ing\b/g, "n");     // going -> gon
-      x = x.replace(/er\b/g, "a");      // never -> neva-ish (after starvation)
-      x = x.replace(/\bthe\b/g, "da");  // the -> da
-      x = x.replace(/tion\b/g, "shn");  // proposition -> proposishn (then starve it)
-      x = x.replace(/ck\b/g, "k");      // back -> bak
-      x = x.replace(/ght\b/g, "t");     // night -> nit
-      return x;
-    }
-
-    // 3) Vowel starvation (lossy). Keep first vowel; later vowels mostly die.
-    function vowelStarve(w, key){
-      if (w.length <= 4) return w;
-      let keptFirst = false;
-      let out = "";
-
-      for (let i=0; i<w.length; i++){
-        const ch = w[i];
-        const isV = VOWELS.has(ch);
-
-        if (!isV){ out += ch; continue; }
-
-        if (!keptFirst){
-          out += ch;
-          keptFirst = true;
+        // keep whitespace as-is
+        if (/^\s+$/.test(tok)){
+          out.push(tok);
           continue;
         }
 
-        // keep some later vowels based on deterministic chance
-        // higher chaos level = fewer vowels survive
-        const lvl = +levelEl.value;
-        const keepProb = Math.max(0.05, 0.22 - (lvl * 0.015)); // lvl 0 -> ~.22, lvl 10 -> ~.07
-        if (chance(keepProb, key + "|v|" + i)) out += ch;
-      }
+        // candidate standalone h token (maybe with punctuation)
+        const parts = splitToken(tok);
+        if (!parts){ out.push(tok); continue; }
 
-      return out;
-    }
+        const { lead, word, trail } = parts;
+        const isStandaloneH = lead === "" && trail === "" && (word === "h" || word === "H");
 
-    // 4) Consonant doubling / stutter (sstay, hhungry, ccmf...)
-    function doubleFront(w, key){
-      if (!w || w.length < 2) return w;
-      if (STOPWORDS.has(w)) return w;
-      if (VOWELS_PLUS_Y.has(w[0])) return w;
-
-      const lvl = +levelEl.value;
-      const baseP = 0.35 + lvl * 0.04; // 0.35 -> 0.75
-      if (!chance(Math.min(0.85, baseP), key + "|df")) return w;
-
-      // sometimes double first TWO consonants if they are consonants
-      const c1 = w[0];
-      const c2 = w[1] || "";
-      const canDouble2 = c2 && /[a-z]/.test(c2) && !VOWELS_PLUS_Y.has(c2);
-
-      if (canDouble2 && chance(0.45, key + "|df2")){
-        return c1 + c2 + w;
-      }
-      return c1 + w;
-    }
-
-    // 5) Cluster echo: if starts with a cluster like "str", echo the first letter (sstr…)
-    function clusterEcho(w, key){
-      if (w.length < 4) return w;
-      if (VOWELS_PLUS_Y.has(w[0])) return w;
-      const lvl = +levelEl.value;
-      const p = 0.10 + lvl * 0.03;
-      if (!chance(Math.min(0.55, p), key + "|ce")) return w;
-
-      // detect 2-3 consonant cluster
-      const a = w[0], b = w[1], c = w[2];
-      const bCon = b && !VOWELS_PLUS_Y.has(b);
-      const cCon = c && !VOWELS_PLUS_Y.has(c);
-
-      if (bCon && cCon) return a + w;      // s + street -> sstreet
-      if (bCon) return a + w;              // c + mf -> ccmf vibe
-      return w;
-    }
-
-    // 6) Internal stutter: repeat one internal consonant once
-    function internalStutter(w, key){
-      if (w.length < 5) return w;
-      const lvl = +levelEl.value;
-      const p = 0.08 + lvl * 0.03;
-      if (!chance(Math.min(0.50, p), key + "|is")) return w;
-
-      // pick an internal position deterministically
-      const pos = 2 + Math.floor(rand01(key + "|pos") * (w.length - 3));
-      const ch = w[pos];
-      if (!/[a-z]/.test(ch) || VOWELS_PLUS_Y.has(ch)) return w;
-
-      return w.slice(0,pos) + ch + w.slice(pos);
-    }
-
-    // 7) Micro swap: swap two neighboring letters once
-    function microSwap(w, key){
-      if (w.length < 5) return w;
-      const lvl = +levelEl.value;
-      const p = 0.06 + lvl * 0.02;
-      if (!chance(Math.min(0.35, p), key + "|ms")) return w;
-
-      const i = 1 + Math.floor(rand01(key + "|msi") * (w.length - 3));
-      const a = w[i], b = w[i+1];
-      if (!a || !b) return w;
-
-      return w.slice(0,i) + b + a + w.slice(i+2);
-    }
-
-    // 8) Restricted leet set: ONLY 3 $ @ ¥ 4 € #
-    function leetify(w){
-      return w
-        .replace(/e/g, "3")
-        .replace(/s/g, "$")
-        .replace(/a/g, "@")
-        .replace(/y/g, "¥");
-    }
-
-    // 9) End-tag stamp: if ends in y/a/e -> replace with ¥/@/3 ; and sometimes add # or €
-    function endStamp(w, key){
-      if (w.length < 2) return w;
-
-      let out = w;
-      const last = out[out.length-1];
-      if (last === "y") out = out.slice(0,-1) + "¥";
-      if (last === "a") out = out.slice(0,-1) + "@";
-      if (last === "e") out = out.slice(0,-1) + "3";
-
-      if (chaosEl.checked){
-        const lvl = +levelEl.value;
-        const p = 0.05 + lvl * 0.02;
-        if (chance(Math.min(0.30, p), key + "|stamp")){
-          out += chance(0.5, key + "|stamp2") ? "#" : "€";
+        if (!isStandaloneH){
+          out.push(tok);
+          continue;
         }
+
+        // look backward for previous word
+        let j = out.length - 1;
+        while (j >= 0 && /^\s+$/.test(out[j])) j--;
+        if (j < 0){ out.push(tok); continue; }
+
+        const prevParts = splitToken(out[j]);
+        if (!prevParts){ out.push(tok); continue; }
+
+        // look forward for next word
+        let k = i + 1;
+        while (k < tokens.length && /^\s+$/.test(tokens[k])) k++;
+        if (k >= tokens.length){ out.push(tok); continue; }
+
+        const nextParts = splitToken(tokens[k]);
+        if (!nextParts){ out.push(tok); continue; }
+
+        const prevWord = prevParts.word;
+        const nextWord = nextParts.word;
+
+        // apply heuristic noun check
+        const prevPrevWord = (() => {
+          let jj = j - 1;
+          while (jj >= 0 && /^\s+$/.test(out[jj])) jj--;
+          const pp = (jj >= 0) ? splitToken(out[jj]) : null;
+          return pp ? pp.word : "";
+        })();
+
+        const prevIsNoun = looksLikeNoun(prevWord, prevPrevWord);
+        const nextIsNoun = looksLikeNoun(nextWord, prevWord);
+
+        if (prevIsNoun && nextIsNoun){
+          // drop the standalone 'h'
+          continue;
+        }
+
+        out.push(tok);
       }
       return out;
     }
 
-    // Optional: drop trailing vowel sometimes (tightens look)
-    function dropTrailingVowel(w, key){
-      if (w.length < 4) return w;
-      const last = w[w.length-1];
-      if (!VOWELS.has(last)) return w;
+    // Apply TH->D, W->V, then vowel swaps. Preserve case per character.
+    function driftWord(word){
+      // Handle TH digraph first (case-insensitive) at word level so it doesn't split into t+h.
+      // Replace "th" or "TH" or "Th" etc with "d"/"D" depending on first char case.
+      let w = word;
 
-      const lvl = +levelEl.value;
-      const p = 0.10 + lvl * 0.03;
-      if (!chance(Math.min(0.55, p), key + "|dtv")) return w;
+      w = w.replace(/th/gi, (match) => {
+        // match could be "th", "Th", "tH", "TH"
+        const first = match[0];
+        return (first === first.toUpperCase()) ? "D" : "d";
+      });
 
-      return w.slice(0,-1);
-    }
+      // Now char-level mapping (W->V, vowels swap)
+      let out = "";
+      for (const ch of w){
+        const low = ch.toLowerCase();
 
-    function translateWord(rawWord, index){
-      let w = normalizeWord(rawWord);
+        // W -> V
+        if (low === "w"){
+          out += preserveCase(ch, "v");
+          continue;
+        }
 
-      // if it's a number token already (like 4), keep it
-      if (/^[0-9]+$/.test(w)) return w;
+        // Vowel swap (I↔E, A↔O, Y↔U)
+        if (VOWEL_SWAP[low]){
+          out += preserveCase(ch, VOWEL_SWAP[low]);
+          continue;
+        }
 
-      const seed = (seedEl.value || "DRIFT7").trim();
-      const key = seed + "|" + w + "|" + index;
-
-      // shortcuts
-      w = shortcuts(w);
-
-      // if shortcut became numeric (for -> 4), keep it
-      if (/^[0-9]+$/.test(w)) return w;
-
-      // drift
-      w = drift(w);
-
-      // vowel starvation
-      if (hardEl.checked) w = vowelStarve(w, key);
-
-      if (chaosEl.checked){
-        w = dropTrailingVowel(w, key);
-        w = clusterEcho(w, key);
-        w = doubleFront(w, key);
-        w = internalStutter(w, key);
-        w = microSwap(w, key);
-      } else {
-        // still keep the signature “double front” even if chaos extras off
-        w = doubleFront(w, key);
+        // unchanged
+        out += ch;
       }
 
-      if (leetEl.checked) w = leetify(w);
-
-      w = endStamp(w, key);
-
-      return w;
+      return out;
     }
 
     function translateText(text){
-      const tokens = text.match(/\s+|[^\s]+/g) || [];
-      let wordIndex = 0;
+      // 1) Split preserving whitespace
+      let tokens = splitPreserveWhitespace(text);
 
+      // 2) Apply "H removed between nouns" (standalone h token)
+      tokens = removeHBetweenNouns(tokens);
+
+      // 3) Transform each token's word portion, preserve punctuation and whitespace
       return tokens.map(tok => {
         if (/^\s+$/.test(tok)) return tok;
 
@@ -397,8 +312,7 @@
         if (!parts) return tok;
 
         const { lead, word, trail } = parts;
-        const outWord = translateWord(word, wordIndex++);
-        return lead + outWord + trail;
+        return lead + driftWord(word) + trail;
       }).join("");
     }
 
@@ -406,22 +320,20 @@
       outputEl.value = translateText(inputEl.value);
     }
 
-    inputEl.addEventListener("input", () => { if (liveEl.checked) update(); });
-    [liveEl, hardEl, leetEl, chaosEl, levelEl, seedEl].forEach(el => {
-      el.addEventListener("change", () => { if (liveEl.checked) update(); });
-      el.addEventListener("input", () => {
-        levelValEl.textContent = levelEl.value;
-        if (liveEl.checked) update();
-      });
-      el.addEventListener("keyup", () => { if (liveEl.checked) update(); });
+    inputEl.addEventListener("input", () => {
+      if (liveEl.checked) update();
+    });
+
+    liveEl.addEventListener("change", () => {
+      if (liveEl.checked) update();
     });
 
     copyBtn.addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText(outputEl.value);
         copyBtn.textContent = "Copied!";
-        setTimeout(()=>copyBtn.textContent="Copy output", 900);
-      } catch(e){
+        setTimeout(() => copyBtn.textContent = "Copy output", 900);
+      } catch (e){
         alert("Copy failed (clipboard permission). You can manually select + copy.");
       }
     });
@@ -432,9 +344,6 @@
       inputEl.focus();
     });
 
-    // seed demo text
-    inputEl.value = "stay hungry and never get comfortable. you know how it is out here.";
-    levelValEl.textContent = levelEl.value;
     update();
   </script>
 </body>
