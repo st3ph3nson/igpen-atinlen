@@ -223,7 +223,7 @@
       box-shadow: none;
     }
 
-    /* ========= UPDATED: modal backdrop is darker + optional blur ========= */
+    /* ========= Modal backdrop ========= */
     .modalBack{
       position: fixed;
       inset: 0;
@@ -236,10 +236,10 @@
       z-index: 50;
     }
 
-    /* ========= UPDATED: modal is SOLID (no transparency) ========= */
+    /* ========= Modal solid panel ========= */
     .modal{
       width: min(720px, 100%);
-      background: #0f1624; /* solid, readable */
+      background: #0f1624;
       border: 1px solid rgba(255,255,255,0.14);
       border-radius: var(--radius);
       box-shadow: 0 30px 60px rgba(0,0,0,0.75);
@@ -266,7 +266,6 @@
       textarea{ width: 100%; }
     }
 
-    /* Optional: make inputs inside modal a bit more solid for typing clarity */
     .modal select,
     .modal input[type="text"],
     .modal input[type="date"],
@@ -335,7 +334,7 @@
       </div>
 
       <div class="small">
-        Nothing displays until you pick <b>both</b> a person and a product. (That’s the whole vibe.)
+        Nothing displays until you pick <b>both</b> a person and a product. (Assignment-locked.)
       </div>
     </section>
 
@@ -400,6 +399,8 @@
     const STORAGE_KEY = "weekly_product_tracker_v2_lookup";
 
     const PEOPLE = ["Adam", "Donta", "Tien"];
+
+    // Keep this list if you want for reference, but the UI is assignment-locked now.
     const PRODUCTS = [
       "Sand Topping Mix",
       "Concrete Mix",
@@ -409,10 +410,11 @@
       "Crack Sealer"
     ];
 
+    // ✅ YOUR TEST ASSIGNMENTS (only these combos exist)
     const DEFAULT_ASSIGNMENTS = {
-      "Adam": ["Sand Topping Mix", "Concrete Mix", "Mortar Mix"],
-      "Donta": ["Fast-Setting Concrete", "Crack Sealer", "Sand Topping Mix"],
-      "Tien": ["Self-Leveling Floor Resurfacer", "Concrete Mix", "Mortar Mix"]
+      "Donta": ["Sand Topping Mix"],
+      "Tien":  ["Crack Sealer"],
+      "Adam":  ["Concrete Mix"]
     };
 
     let state = loadState();
@@ -445,6 +447,7 @@
     init();
 
     function init(){
+      // Seed state from DEFAULT_ASSIGNMENTS (only assigned combos are created)
       if (!state.combos || Object.keys(state.combos).length === 0){
         state = { combos: {} };
         for (const person of PEOPLE){
@@ -457,15 +460,21 @@
       }
 
       fillSelect(filterPerson, ["Select person…", ...PEOPLE]);
-      fillSelect(filterProduct, ["Select product…", ...uniqueProductsInState()]);
+
+      // Assignment-locked: product dropdown starts empty until person selected
+      fillSelect(filterProduct, ["Select product…"]);
 
       fillSelect(personSel, PEOPLE);
-      fillSelect(productSel, uniqueProductsInState());
+      // productSel is driven by personSel, so we fill it when modal opens / person changes
 
       filterPerson.value = "Select person…";
       filterProduct.value = "Select product…";
+      refreshFilterProducts();
 
-      filterPerson.addEventListener("change", render);
+      filterPerson.addEventListener("change", () => {
+        refreshFilterProducts();
+        render();
+      });
       filterProduct.addEventListener("change", render);
       searchText.addEventListener("input", render);
 
@@ -492,9 +501,51 @@
         if (e.target === modalBack) closeModal();
       });
 
-      render(); // shows the hint card until selections are made
+      // Modal: when person changes, product list updates to only their assignments
+      personSel.addEventListener("change", () => {
+        refreshModalProducts();
+      });
+
+      render();
     }
 
+    // ---------- Assignment helpers ----------
+    function productsForPerson(person){
+      return (DEFAULT_ASSIGNMENTS[person] || []).slice();
+    }
+    function isAssigned(person, product){
+      return productsForPerson(person).includes(product);
+    }
+
+    function refreshFilterProducts(){
+      const selectedPerson = filterPerson.value;
+
+      if (!PEOPLE.includes(selectedPerson)){
+        fillSelect(filterProduct, ["Select product…"]);
+        filterProduct.value = "Select product…";
+        return;
+      }
+
+      const allowed = productsForPerson(selectedPerson);
+      fillSelect(filterProduct, ["Select product…", ...allowed]);
+
+      if (!allowed.includes(filterProduct.value)){
+        filterProduct.value = "Select product…";
+      }
+    }
+
+    function refreshModalProducts(){
+      const p = personSel.value;
+      const allowed = productsForPerson(p);
+
+      fillSelect(productSel, allowed.length ? allowed : ["(No assigned products)"]);
+
+      if (allowed.length && !allowed.includes(productSel.value)){
+        productSel.value = allowed[0];
+      }
+    }
+
+    // ---------- Core helpers ----------
     function fillSelect(selectEl, items){
       selectEl.innerHTML = "";
       for (const item of items){
@@ -503,15 +554,6 @@
         opt.textContent = item;
         selectEl.appendChild(opt);
       }
-    }
-
-    function uniqueProductsInState(){
-      const set = new Set(PRODUCTS);
-      for (const key of Object.keys(state.combos || {})){
-        const combo = state.combos[key];
-        if (combo?.product) set.add(combo.product);
-      }
-      return Array.from(set).sort((a,b) => a.localeCompare(b));
     }
 
     function comboKey(person, product){
@@ -533,7 +575,7 @@
       return state.combos[key];
     }
 
-    // KEY CHANGE: Only render when BOTH are selected.
+    // ---------- Render ----------
     function render(){
       cardsEl.innerHTML = "";
 
@@ -541,17 +583,16 @@
       const selectedProduct = filterProduct.value;
 
       const personChosen = PEOPLE.includes(selectedPerson);
-      const productChosen = uniqueProductsInState().includes(selectedProduct);
+      const productChosen = personChosen && isAssigned(selectedPerson, selectedProduct);
 
       if (!personChosen || !productChosen){
-        cardsEl.appendChild(renderHintCard());
+        cardsEl.appendChild(renderHintCard(personChosen));
         return;
       }
 
-      // Ensure the combo exists so the lookup always works
+      // Only assigned combos exist; ensureCombo is safe here
       const combo = ensureCombo(selectedPerson, selectedProduct);
 
-      // Optional search within this combo’s notes
       const needle = (searchText.value || "").trim().toLowerCase();
       if (needle){
         const hay = [
@@ -574,14 +615,28 @@
       cardsEl.appendChild(renderCard(combo));
     }
 
-    function renderHintCard(){
+    function renderHintCard(personChosen){
       const div = document.createElement("div");
       div.className = "hintCard";
+
+      if (!personChosen){
+        div.innerHTML = `
+          <b>Pick a person to begin.</b><br/>
+          Then the Product list will only show that person’s assigned projects.
+          <div style="margin-top:8px;" class="small">
+            Example: <span style="color: var(--text);">Donta</span> → <span style="color: var(--text);">Sand Topping Mix</span>
+          </div>
+        `;
+        return div;
+      }
+
+      const p = filterPerson.value;
+      const allowed = productsForPerson(p);
       div.innerHTML = `
-        <b>Pick a person + product to view notes.</b><br/>
-        Example: <span style="color: var(--text);">Donta</span> + <span style="color: var(--text);">Sand Topping Mix</span>.
+        <b>Now pick a product for ${escapeHtml(p)}.</b><br/>
+        Allowed: <span style="color: var(--text);">${allowed.map(escapeHtml).join(", ") || "none"}</span>
         <div style="margin-top:8px;" class="small">
-          Use “Add weekly update” to create the first note for a combo.
+          Use “Add weekly update” to add notes.
         </div>
       `;
       return div;
@@ -648,17 +703,21 @@
       return card;
     }
 
+    // ---------- Modal ----------
     function openModal(person = null, product = null){
       const currentPerson = PEOPLE.includes(filterPerson.value) ? filterPerson.value : PEOPLE[0];
-      const currentProduct = uniqueProductsInState().includes(filterProduct.value) ? filterProduct.value : uniqueProductsInState()[0];
-
       const p = person || currentPerson;
-      const pr = product || currentProduct;
 
-      const combo = ensureCombo(p, pr);
+      personSel.value = p;
+      refreshModalProducts();
 
-      personSel.value = combo.person;
-      productSel.value = combo.product;
+      // Choose product: use passed product if assigned, else first assigned
+      const allowed = productsForPerson(p);
+      const chosenProduct = (product && isAssigned(p, product)) ? product : (allowed[0] || "");
+      productSel.value = chosenProduct;
+
+      const combo = ensureCombo(p, chosenProduct);
+
       statusSel.value = combo.status || "not_started";
       dueDateEl.value = combo.dueDate || "";
       noteTextEl.value = "";
@@ -676,6 +735,11 @@
     function saveUpdateFromModal(){
       const person = personSel.value;
       const product = productSel.value;
+
+      if (!isAssigned(person, product)){
+        toast("That product isn’t assigned to that person.");
+        return;
+      }
 
       const combo = ensureCombo(person, product);
       const status = statusSel.value;
@@ -701,8 +765,8 @@
       saveState();
       toast(`Saved update: ${person} • ${product}`);
 
-      // Helpful: auto-set filters to what you just updated
       filterPerson.value = person;
+      refreshFilterProducts();
       filterProduct.value = product;
 
       closeModal();
@@ -713,6 +777,12 @@
       statusSel.value = "done";
       const person = personSel.value;
       const product = productSel.value;
+
+      if (!isAssigned(person, product)){
+        toast("That product isn’t assigned to that person.");
+        return;
+      }
+
       const combo = ensureCombo(person, product);
       combo.status = "done";
       combo.lastUpdatedISO = new Date().toISOString();
@@ -720,12 +790,14 @@
       toast(`Marked done: ${person} • ${product}`);
 
       filterPerson.value = person;
+      refreshFilterProducts();
       filterProduct.value = product;
 
       closeModal();
       render();
     }
 
+    // ---------- Import / Export ----------
     function exportJSON(){
       const payload = {
         exportedAtISO: new Date().toISOString(),
@@ -772,6 +844,7 @@
       reader.readAsText(file);
     }
 
+    // ---------- Storage ----------
     function loadState(){
       try{
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -789,6 +862,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
+    // ---------- Status helpers ----------
     function statusLabel(s){
       switch (s){
         case "not_started": return "Not started";
@@ -809,6 +883,7 @@
       }
     }
 
+    // ---------- Formatting ----------
     function formatDate(isoDate){
       try{
         const [y,m,d] = isoDate.split("-").map(Number);
@@ -840,6 +915,7 @@
         .replaceAll("'", "&#039;");
     }
 
+    // ---------- Toast ----------
     let toastTimer = null;
     function toast(msg){
       toastEl.textContent = msg;
