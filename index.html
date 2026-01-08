@@ -1,834 +1,283 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Weekly Product Project Tracker</title>
-  <style>
-    :root{
-      --bg: #0b0f17;
-      --panel: #121a28;
-      --text: #e9eef7;
-      --muted: #a8b3c7;
-      --line: rgba(255,255,255,0.10);
-      --good: #39d98a;
-      --warn: #ffd166;
-      --bad: #ff5c7a;
-      --info: #5aa9ff;
-      --shadow: 0 10px 25px rgba(0,0,0,0.35);
-      --radius: 16px;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Weekly Product Project Tracker</title>
 
-    * { box-sizing: border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 20% 0%, rgba(90,169,255,0.15), transparent 60%),
-                  radial-gradient(900px 700px at 90% 20%, rgba(57,217,138,0.12), transparent 55%),
-                  var(--bg);
-      color: var(--text);
-      line-height: 1.4;
-    }
+<style>
+:root{
+  --bg:#0b0f17;
+  --panel:#0f1624;
+  --text:#e9eef7;
+  --muted:#9aa6bc;
+  --line:rgba(255,255,255,.12);
+  --good:#39d98a;
+  --warn:#ffd166;
+  --bad:#ff5c7a;
+  --info:#5aa9ff;
+  --radius:16px;
+}
 
-    header{
-      padding: 26px 18px 10px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    h1{ margin:0 0 6px 0; font-size: 22px; }
-    .sub{ margin:0; color: var(--muted); font-size: 13px; }
+*{box-sizing:border-box}
 
-    .wrap{
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 14px 18px 40px;
-      display: grid;
-      gap: 14px;
-    }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  background:radial-gradient(1200px 600px at 20% 0%,rgba(90,169,255,.15),transparent 60%),
+             radial-gradient(900px 700px at 90% 20%,rgba(57,217,138,.12),transparent 55%),
+             var(--bg);
+  color:var(--text);
+}
 
-    .toolbar{
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      display: grid;
-      gap: 12px;
-    }
+header{
+  max-width:1100px;
+  margin:auto;
+  padding:26px 18px 12px;
+}
 
-    .row{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: end;
-      justify-content: space-between;
-    }
+h1{margin:0 0 6px;font-size:22px}
+.sub{color:var(--muted);font-size:13px}
 
-    .filters{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: end;
-    }
+.wrap{
+  max-width:1100px;
+  margin:auto;
+  padding:14px 18px 40px;
+  display:grid;
+  gap:14px;
+}
 
-    label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+.toolbar{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px;
+  display:grid;
+  gap:12px;
+}
 
-    select, input[type="text"], input[type="date"], textarea{
-      width: 240px;
-      max-width: 100%;
-      padding: 10px 10px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      outline: none;
-    }
-    textarea{
-      width: 520px;
-      min-height: 84px;
-      resize: vertical;
-    }
-    select option { background: #0d1422; }
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:space-between;
+  align-items:end;
+}
 
-    .btns{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }
+.filters{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
 
-    button{
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform .05s ease, background .15s ease, border-color .15s ease;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-    button:hover{
-      background: rgba(255,255,255,0.10);
-      border-color: rgba(255,255,255,0.18);
-    }
-    button:active{ transform: translateY(1px); }
+label{
+  font-size:12px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:6px;
+}
 
-    .primary{
-      background: rgba(90,169,255,0.18);
-      border-color: rgba(90,169,255,0.35);
-    }
-    .danger{
-      background: rgba(255,92,122,0.14);
-      border-color: rgba(255,92,122,0.32);
-    }
+select,input,textarea{
+  background:#0b1220;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px;
+  width:240px;
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 14px;
-    }
+textarea{
+  width:100%;
+  min-height:90px;
+}
 
-    .card{
-      grid-column: span 12;
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      display:grid;
-      gap: 10px;
-    }
+button{
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-weight:600;
+}
 
-    .cardTop{
-      display:flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .title{
-      display:flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .title b{ font-size: 15px; }
-    .title span{ font-size: 12px; color: var(--muted); }
+button.primary{
+  background:rgba(90,169,255,.2);
+  border-color:rgba(90,169,255,.4);
+}
 
-    .pill{
-      font-size: 12px;
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.05);
-      white-space: nowrap;
-    }
+button.danger{
+  background:rgba(255,92,122,.18);
+  border-color:rgba(255,92,122,.35);
+}
 
-    .pill.good{ border-color: rgba(57,217,138,0.35); background: rgba(57,217,138,0.12); }
-    .pill.warn{ border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.12); }
-    .pill.bad{  border-color: rgba(255,92,122,0.35); background: rgba(255,92,122,0.12); }
-    .pill.info{ border-color: rgba(90,169,255,0.35); background: rgba(90,169,255,0.12); }
+.grid{
+  display:grid;
+  gap:14px;
+}
 
-    .meta{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 10px 14px;
-      padding-top: 4px;
-      border-top: 1px solid var(--line);
-      margin-top: 2px;
-    }
-    .meta div{ font-size: 12px; color: var(--muted); }
-    .meta b{ color: var(--text); font-weight: 700; }
+.card{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px;
+}
 
-    .notes{
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
-      display:grid;
-      gap: 8px;
-    }
+.title b{font-size:16px}
+.title span{font-size:12px;color:var(--muted)}
 
-    .note{
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      border-radius: 14px;
-      padding: 10px;
-    }
-    .noteHead{
-      display:flex;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .noteText{
-      white-space: pre-wrap;
-      font-size: 13px;
-    }
+.pill{
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
 
-    .small{ font-size: 12px; color: var(--muted); }
+.good{background:rgba(57,217,138,.15)}
+.warn{background:rgba(255,209,102,.15)}
+.bad{background:rgba(255,92,122,.15)}
+.info{background:rgba(90,169,255,.15)}
 
-    .hintCard{
-      grid-column: span 12;
-      border: 1px dashed rgba(255,255,255,0.22);
-      background: rgba(255,255,255,0.03);
-      border-radius: var(--radius);
-      padding: 16px;
-      color: var(--muted);
-      box-shadow: none;
-    }
+.meta{
+  display:flex;
+  gap:14px;
+  font-size:12px;
+  color:var(--muted);
+  border-top:1px solid var(--line);
+  padding-top:6px;
+}
 
-    .modalBack{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 50;
-    }
-    .modal{
-      width: min(720px, 100%);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      display:grid;
-      gap: 10px;
-    }
-    .modalTop{
-      display:flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .modalTop b{ font-size: 14px; }
-    .twoCol{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    @media (max-width: 700px){
-      .twoCol{ grid-template-columns: 1fr; }
-      textarea{ width: 100%; }
-    }
+.note{
+  background:#0b1220;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px;
+  margin-top:8px;
+}
 
-    .toast{
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      background: rgba(15,22,36,0.95);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 10px 12px;
-      box-shadow: var(--shadow);
-      display:none;
-      z-index: 80;
-      max-width: min(520px, calc(100vw - 32px));
-      font-size: 13px;
-      color: var(--text);
-    }
-  </style>
+.noteHead{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
+
+/* ===== MODAL FIX ===== */
+
+.modalBack{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+}
+
+.modal{
+  width:min(720px,100%);
+  background:#0f1624; /* SOLID */
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:var(--radius);
+  padding:18px;
+  display:grid;
+  gap:14px;
+  box-shadow:0 30px 60px rgba(0,0,0,.8);
+}
+
+.modalTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.toast{
+  position:fixed;
+  bottom:16px;
+  right:16px;
+  background:#0f1624;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 14px;
+  display:none;
+}
+
+.hint{
+  border:1px dashed rgba(255,255,255,.25);
+  padding:16px;
+  border-radius:var(--radius);
+  color:var(--muted);
+}
+</style>
 </head>
 
 <body>
-  <header>
-    <h1>Weekly Product Project Tracker</h1>
-    <p class="sub">Lookup mode: pick a person + product to view that project’s notes and status.</p>
-  </header>
 
-  <div class="wrap">
+<header>
+  <h1>Weekly Product Project Tracker</h1>
+  <p class="sub">Lookup mode — nothing shows until you pick a person and a product.</p>
+</header>
 
-    <section class="toolbar">
-      <div class="row">
-        <div class="filters">
-          <div>
-            <label for="filterPerson">Person</label>
-            <select id="filterPerson"></select>
-          </div>
+<div class="wrap">
 
-          <div>
-            <label for="filterProduct">Product</label>
-            <select id="filterProduct"></select>
-          </div>
-
-          <div>
-            <label for="searchText">Search notes (optional)</label>
-            <input id="searchText" type="text" placeholder="e.g., waiting on data sheet…" />
-          </div>
-        </div>
-
-        <div class="btns">
-          <button id="btnNewUpdate" class="primary">Add weekly update</button>
-          <button id="btnExport">Export JSON</button>
-          <button id="btnImport">Import JSON</button>
-          <button id="btnReset" class="danger">Reset (local)</button>
-        </div>
-      </div>
-
-      <div class="small">
-        Nothing displays until you pick <b>both</b> a person and a product. (That’s the whole vibe.)
-      </div>
-    </section>
-
-    <section class="grid" id="cards"></section>
-  </div>
-
-  <!-- Modal -->
-  <div class="modalBack" id="modalBack" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-label="Add weekly update">
-      <div class="modalTop">
-        <b>Add / Update Notes</b>
-        <button id="btnCloseModal">Close</button>
-      </div>
-
-      <div class="twoCol">
-        <div>
-          <label for="personSel">Person</label>
-          <select id="personSel"></select>
-        </div>
-        <div>
-          <label for="productSel">Product</label>
-          <select id="productSel"></select>
-        </div>
-      </div>
-
-      <div class="twoCol">
-        <div>
-          <label for="statusSel">Status</label>
-          <select id="statusSel">
-            <option value="not_started">Not started</option>
-            <option value="in_progress">In progress</option>
-            <option value="blocked">Blocked</option>
-            <option value="done">Done</option>
-          </select>
-        </div>
-        <div>
-          <label for="dueDate">Target completion date</label>
-          <input id="dueDate" type="date" />
-        </div>
-      </div>
-
+<div class="toolbar">
+  <div class="row">
+    <div class="filters">
       <div>
-        <label for="noteText">Weekly update note</label>
-        <textarea id="noteText" placeholder="What changed this week? What’s next? Any blockers?"></textarea>
+        <label>Person</label>
+        <select id="personFilter">
+          <option>Select person…</option>
+          <option>Adam</option>
+          <option>Donta</option>
+          <option>Tien</option>
+        </select>
       </div>
-
-      <div class="btns">
-        <button id="btnMarkDone">Mark as Done</button>
-        <button id="btnSaveUpdate" class="primary">Save update</button>
-      </div>
-
-      <div class="small">
-        Notes append with timestamps so you’ve always got a weekly history.
+      <div>
+        <label>Product</label>
+        <select id="productFilter">
+          <option>Select product…</option>
+          <option>Concrete Mix</option>
+          <option>Sand Topping Mix</option>
+          <option>Mortar Mix</option>
+        </select>
       </div>
     </div>
+    <button id="openModal" class="primary">Add weekly update</button>
   </div>
+</div>
 
-  <div class="toast" id="toast"></div>
-  <input id="importFile" type="file" accept="application/json" style="display:none;" />
+<div id="cards" class="grid">
+  <div class="hint">Pick a person and product to view notes.</div>
+</div>
 
-  <script>
-    const STORAGE_KEY = "weekly_product_tracker_v2_lookup";
+</div>
 
-    const PEOPLE = ["Adam", "Donta", "Tien"];
-    const PRODUCTS = [
-      "Sand Topping Mix",
-      "Concrete Mix",
-      "Mortar Mix",
-      "Fast-Setting Concrete",
-      "Self-Leveling Floor Resurfacer",
-      "Crack Sealer"
-    ];
+<!-- MODAL -->
+<div class="modalBack" id="modalBack">
+  <div class="modal">
+    <div class="modalTop">
+      <b>Add / Update Notes</b>
+      <button id="closeModal">Close</button>
+    </div>
 
-    const DEFAULT_ASSIGNMENTS = {
-      "Adam": ["Sand Topping Mix", "Concrete Mix", "Mortar Mix"],
-      "Donta": ["Fast-Setting Concrete", "Crack Sealer", "Sand Topping Mix"],
-      "Tien": ["Self-Leveling Floor Resurfacer", "Concrete Mix", "Mortar Mix"]
-    };
+    <label>Weekly update note</label>
+    <textarea id="noteText" placeholder="What changed this week? What’s next? Any blockers?"></textarea>
 
-    let state = loadState();
+    <button class="primary" id="saveNote">Save update</button>
+  </div>
+</div>
 
-    const el = (id) => document.getElementById(id);
+<div class="toast" id="toast"></div>
 
-    const filterPerson = el("filterPerson");
-    const filterProduct = el("filterProduct");
-    const searchText = el("searchText");
-    const cardsEl = el("cards");
+<script>
+const modalBack=document.getElementById("modalBack");
+document.getElementById("openModal").onclick=()=>modalBack.style.display="flex";
+document.getElementById("closeModal").onclick=()=>modalBack.style.display="none";
+</script>
 
-    const modalBack = el("modalBack");
-    const btnNewUpdate = el("btnNewUpdate");
-    const btnCloseModal = el("btnCloseModal");
-    const btnSaveUpdate = el("btnSaveUpdate");
-    const btnMarkDone = el("btnMarkDone");
-    const btnExport = el("btnExport");
-    const btnImport = el("btnImport");
-    const btnReset = el("btnReset");
-
-    const personSel = el("personSel");
-    const productSel = el("productSel");
-    const statusSel = el("statusSel");
-    const dueDateEl = el("dueDate");
-    const noteTextEl = el("noteText");
-
-    const importFile = el("importFile");
-    const toastEl = el("toast");
-
-    init();
-
-    function init(){
-      if (!state.combos || Object.keys(state.combos).length === 0){
-        state = { combos: {} };
-        for (const person of PEOPLE){
-          const list = DEFAULT_ASSIGNMENTS[person] || [];
-          for (const product of list){
-            ensureCombo(person, product);
-          }
-        }
-        saveState();
-      }
-
-      fillSelect(filterPerson, ["Select person…", ...PEOPLE]);
-      fillSelect(filterProduct, ["Select product…", ...uniqueProductsInState()]);
-
-      fillSelect(personSel, PEOPLE);
-      fillSelect(productSel, uniqueProductsInState());
-
-      filterPerson.value = "Select person…";
-      filterProduct.value = "Select product…";
-
-      filterPerson.addEventListener("change", render);
-      filterProduct.addEventListener("change", render);
-      searchText.addEventListener("input", render);
-
-      btnNewUpdate.addEventListener("click", () => openModal());
-      btnCloseModal.addEventListener("click", closeModal);
-
-      btnSaveUpdate.addEventListener("click", saveUpdateFromModal);
-      btnMarkDone.addEventListener("click", markDoneFromModal);
-
-      btnExport.addEventListener("click", exportJSON);
-      btnImport.addEventListener("click", () => importFile.click());
-      importFile.addEventListener("change", importJSON);
-
-      btnReset.addEventListener("click", () => {
-        const ok = confirm("Reset local tracker data on this computer? (Cannot undo)");
-        if (!ok) return;
-        localStorage.removeItem(STORAGE_KEY);
-        state = loadState();
-        init();
-        toast("Reset complete.");
-      });
-
-      modalBack.addEventListener("click", (e) => {
-        if (e.target === modalBack) closeModal();
-      });
-
-      render(); // shows the hint card until selections are made
-    }
-
-    function fillSelect(selectEl, items){
-      selectEl.innerHTML = "";
-      for (const item of items){
-        const opt = document.createElement("option");
-        opt.value = item;
-        opt.textContent = item;
-        selectEl.appendChild(opt);
-      }
-    }
-
-    function uniqueProductsInState(){
-      const set = new Set(PRODUCTS);
-      for (const key of Object.keys(state.combos || {})){
-        const combo = state.combos[key];
-        if (combo?.product) set.add(combo.product);
-      }
-      return Array.from(set).sort((a,b) => a.localeCompare(b));
-    }
-
-    function comboKey(person, product){
-      return `${person}||${product}`;
-    }
-
-    function ensureCombo(person, product){
-      const key = comboKey(person, product);
-      if (!state.combos[key]){
-        state.combos[key] = {
-          person,
-          product,
-          status: "not_started",
-          dueDate: "",
-          lastUpdatedISO: "",
-          notes: []
-        };
-      }
-      return state.combos[key];
-    }
-
-    // KEY CHANGE: Only render when BOTH are selected.
-    function render(){
-      cardsEl.innerHTML = "";
-
-      const selectedPerson = filterPerson.value;
-      const selectedProduct = filterProduct.value;
-
-      const personChosen = PEOPLE.includes(selectedPerson);
-      const productChosen = uniqueProductsInState().includes(selectedProduct);
-
-      if (!personChosen || !productChosen){
-        cardsEl.appendChild(renderHintCard());
-        return;
-      }
-
-      // Ensure the combo exists so the lookup always works
-      const combo = ensureCombo(selectedPerson, selectedProduct);
-
-      // Optional search within this combo’s notes
-      const needle = (searchText.value || "").trim().toLowerCase();
-      if (needle){
-        const hay = [
-          combo.person, combo.product, combo.status, combo.dueDate,
-          ...(combo.notes || []).map(n => n.text)
-        ].join(" ").toLowerCase();
-
-        if (!hay.includes(needle)){
-          const empty = document.createElement("div");
-          empty.className = "hintCard";
-          empty.innerHTML = `
-            <b>No matches for that search.</b><br/>
-            Try a different keyword, or clear the search box.
-          `;
-          cardsEl.appendChild(empty);
-          return;
-        }
-      }
-
-      cardsEl.appendChild(renderCard(combo));
-    }
-
-    function renderHintCard(){
-      const div = document.createElement("div");
-      div.className = "hintCard";
-      div.innerHTML = `
-        <b>Pick a person + product to view notes.</b><br/>
-        Example: <span style="color: var(--text);">Donta</span> + <span style="color: var(--text);">Sand Topping Mix</span>.
-        <div style="margin-top:8px;" class="small">
-          Use “Add weekly update” to create the first note for a combo.
-        </div>
-      `;
-      return div;
-    }
-
-    function renderCard(combo){
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const pillClass = statusPillClass(combo.status);
-      const pillLabel = statusLabel(combo.status);
-
-      const due = combo.dueDate ? formatDate(combo.dueDate) : "—";
-      const last = combo.lastUpdatedISO ? formatDateTime(combo.lastUpdatedISO) : "—";
-
-      const notes = (combo.notes || []).slice().reverse();
-      const notesHtml = notes.length
-        ? notes.map(n => `
-            <div class="note">
-              <div class="noteHead">
-                <span>${formatDateTime(n.tsISO)}</span>
-                <span>${statusLabel(n.status)}${n.dueDate ? " • due " + formatDate(n.dueDate) : ""}</span>
-              </div>
-              <div class="noteText">${escapeHtml(n.text)}</div>
-            </div>
-          `).join("")
-        : `<div class="small">No notes yet. Add the first weekly update.</div>`;
-
-      card.innerHTML = `
-        <div class="cardTop">
-          <div class="title">
-            <b>${escapeHtml(combo.product)}</b>
-            <span>${escapeHtml(combo.person)}</span>
-          </div>
-          <span class="pill ${pillClass}">${pillLabel}</span>
-        </div>
-
-        <div class="meta">
-          <div>Target: <b>${escapeHtml(due)}</b></div>
-          <div>Last update: <b>${escapeHtml(last)}</b></div>
-          <div>Updates: <b>${(combo.notes || []).length}</b></div>
-        </div>
-
-        <div class="notes">
-          ${notesHtml}
-        </div>
-
-        <div class="btns">
-          <button class="primary">Add update</button>
-          <button>Quick: Mark done</button>
-        </div>
-      `;
-
-      const [btnAdd, btnDone] = card.querySelectorAll("button");
-      btnAdd.addEventListener("click", () => openModal(combo.person, combo.product));
-      btnDone.addEventListener("click", () => {
-        combo.status = "done";
-        combo.lastUpdatedISO = new Date().toISOString();
-        saveState();
-        toast(`Marked done: ${combo.person} • ${combo.product}`);
-        render();
-      });
-
-      return card;
-    }
-
-    function openModal(person = null, product = null){
-      const currentPerson = PEOPLE.includes(filterPerson.value) ? filterPerson.value : PEOPLE[0];
-      const currentProduct = uniqueProductsInState().includes(filterProduct.value) ? filterProduct.value : uniqueProductsInState()[0];
-
-      const p = person || currentPerson;
-      const pr = product || currentProduct;
-
-      const combo = ensureCombo(p, pr);
-
-      personSel.value = combo.person;
-      productSel.value = combo.product;
-      statusSel.value = combo.status || "not_started";
-      dueDateEl.value = combo.dueDate || "";
-      noteTextEl.value = "";
-
-      modalBack.style.display = "flex";
-      modalBack.setAttribute("aria-hidden", "false");
-      noteTextEl.focus();
-    }
-
-    function closeModal(){
-      modalBack.style.display = "none";
-      modalBack.setAttribute("aria-hidden", "true");
-    }
-
-    function saveUpdateFromModal(){
-      const person = personSel.value;
-      const product = productSel.value;
-
-      const combo = ensureCombo(person, product);
-      const status = statusSel.value;
-      const dueDate = dueDateEl.value;
-      const text = (noteTextEl.value || "").trim();
-
-      if (!text){
-        toast("Write a note first (even a short one).");
-        return;
-      }
-
-      combo.status = status;
-      combo.dueDate = dueDate;
-      combo.lastUpdatedISO = new Date().toISOString();
-      combo.notes = combo.notes || [];
-      combo.notes.push({
-        tsISO: combo.lastUpdatedISO,
-        text,
-        status,
-        dueDate
-      });
-
-      saveState();
-      toast(`Saved update: ${person} • ${product}`);
-
-      // Helpful: auto-set filters to what you just updated
-      filterPerson.value = person;
-      filterProduct.value = product;
-
-      closeModal();
-      render();
-    }
-
-    function markDoneFromModal(){
-      statusSel.value = "done";
-      const person = personSel.value;
-      const product = productSel.value;
-      const combo = ensureCombo(person, product);
-      combo.status = "done";
-      combo.lastUpdatedISO = new Date().toISOString();
-      saveState();
-      toast(`Marked done: ${person} • ${product}`);
-
-      filterPerson.value = person;
-      filterProduct.value = product;
-
-      closeModal();
-      render();
-    }
-
-    function exportJSON(){
-      const payload = {
-        exportedAtISO: new Date().toISOString(),
-        app: "Weekly Product Project Tracker (Lookup Mode)",
-        version: 2,
-        data: state
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `project-tracker-export-${new Date().toISOString().slice(0,10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      toast("Exported JSON.");
-    }
-
-    function importJSON(){
-      const file = importFile.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        try{
-          const parsed = JSON.parse(reader.result);
-          const incoming = parsed?.data || parsed;
-          if (!incoming?.combos || typeof incoming.combos !== "object"){
-            throw new Error("Invalid file format (missing combos).");
-          }
-          state = incoming;
-          saveState();
-          toast("Import complete.");
-          importFile.value = "";
-          init();
-        } catch (e){
-          toast("Import failed: " + (e?.message || "Unknown error"));
-          importFile.value = "";
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function loadState(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { combos: {} };
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object") return { combos: {} };
-        if (!parsed.combos) parsed.combos = {};
-        return parsed;
-      } catch {
-        return { combos: {} };
-      }
-    }
-
-    function saveState(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function statusLabel(s){
-      switch (s){
-        case "not_started": return "Not started";
-        case "in_progress": return "In progress";
-        case "blocked": return "Blocked";
-        case "done": return "Done";
-        default: return "Unknown";
-      }
-    }
-
-    function statusPillClass(s){
-      switch (s){
-        case "done": return "good";
-        case "in_progress": return "info";
-        case "blocked": return "bad";
-        case "not_started": return "warn";
-        default: return "info";
-      }
-    }
-
-    function formatDate(isoDate){
-      try{
-        const [y,m,d] = isoDate.split("-").map(Number);
-        const dt = new Date(y, m-1, d);
-        return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
-      } catch {
-        return isoDate;
-      }
-    }
-
-    function formatDateTime(iso){
-      try{
-        const dt = new Date(iso);
-        return dt.toLocaleString(undefined, {
-          year:"numeric", month:"short", day:"2-digit",
-          hour:"2-digit", minute:"2-digit"
-        });
-      } catch {
-        return iso;
-      }
-    }
-
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    let toastTimer = null;
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.style.display = "block";
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toastEl.style.display = "none";
-      }, 2200);
-    }
-  </script>
 </body>
 </html>
+
 
