@@ -8,7 +8,6 @@
     :root{
       --bg: #0b0f17;
       --panel: #121a28;
-      --panel2: #0f1624;
       --text: #e9eef7;
       --muted: #a8b3c7;
       --line: rgba(255,255,255,0.10);
@@ -36,16 +35,8 @@
       max-width: 1100px;
       margin: 0 auto;
     }
-    h1{
-      margin:0 0 6px 0;
-      font-size: 22px;
-      letter-spacing: 0.2px;
-    }
-    .sub{
-      margin:0;
-      color: var(--muted);
-      font-size: 13px;
-    }
+    h1{ margin:0 0 6px 0; font-size: 22px; }
+    .sub{ margin:0; color: var(--muted); font-size: 13px; }
 
     .wrap{
       max-width: 1100px;
@@ -87,8 +78,8 @@
       margin-bottom: 6px;
     }
 
-    select, input[type="date"], input[type="text"], textarea{
-      width: 220px;
+    select, input[type="text"], input[type="date"], textarea{
+      width: 240px;
       max-width: 100%;
       padding: 10px 10px;
       border-radius: 12px;
@@ -97,13 +88,11 @@
       color: var(--text);
       outline: none;
     }
-
     textarea{
       width: 520px;
       min-height: 84px;
       resize: vertical;
     }
-
     select option { background: #0d1422; }
 
     .btns{
@@ -134,7 +123,6 @@
       background: rgba(90,169,255,0.18);
       border-color: rgba(90,169,255,0.35);
     }
-
     .danger{
       background: rgba(255,92,122,0.14);
       border-color: rgba(255,92,122,0.32);
@@ -147,7 +135,7 @@
     }
 
     .card{
-      grid-column: span 6;
+      grid-column: span 12;
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
       border: 1px solid var(--line);
       border-radius: var(--radius);
@@ -155,11 +143,6 @@
       padding: 14px;
       display:grid;
       gap: 10px;
-    }
-
-    @media (max-width: 900px){
-      .card{ grid-column: span 12; }
-      textarea{ width: 100%; }
     }
 
     .cardTop{
@@ -173,13 +156,8 @@
       flex-direction: column;
       gap: 2px;
     }
-    .title b{
-      font-size: 15px;
-    }
-    .title span{
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .title b{ font-size: 15px; }
+    .title span{ font-size: 12px; color: var(--muted); }
 
     .pill{
       font-size: 12px;
@@ -204,14 +182,8 @@
       border-top: 1px solid var(--line);
       margin-top: 2px;
     }
-    .meta div{
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .meta b{
-      color: var(--text);
-      font-weight: 700;
-    }
+    .meta div{ font-size: 12px; color: var(--muted); }
+    .meta b{ color: var(--text); font-weight: 700; }
 
     .notes{
       border-top: 1px solid var(--line);
@@ -239,9 +211,16 @@
       font-size: 13px;
     }
 
-    .small{
-      font-size: 12px;
+    .small{ font-size: 12px; color: var(--muted); }
+
+    .hintCard{
+      grid-column: span 12;
+      border: 1px dashed rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius);
+      padding: 16px;
       color: var(--muted);
+      box-shadow: none;
     }
 
     .modalBack{
@@ -270,9 +249,7 @@
       justify-content: space-between;
       gap: 10px;
     }
-    .modalTop b{
-      font-size: 14px;
-    }
+    .modalTop b{ font-size: 14px; }
     .twoCol{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -280,6 +257,7 @@
     }
     @media (max-width: 700px){
       .twoCol{ grid-template-columns: 1fr; }
+      textarea{ width: 100%; }
     }
 
     .toast{
@@ -303,7 +281,7 @@
 <body>
   <header>
     <h1>Weekly Product Project Tracker</h1>
-    <p class="sub">Pick a person + product, log weekly updates, track status + target completion. Data saves in your browser.</p>
+    <p class="sub">Lookup mode: pick a person + product to view that project’s notes and status.</p>
   </header>
 
   <div class="wrap">
@@ -312,17 +290,17 @@
       <div class="row">
         <div class="filters">
           <div>
-            <label for="filterPerson">Filter: Person</label>
+            <label for="filterPerson">Person</label>
             <select id="filterPerson"></select>
           </div>
 
           <div>
-            <label for="filterProduct">Filter: Product</label>
+            <label for="filterProduct">Product</label>
             <select id="filterProduct"></select>
           </div>
 
           <div>
-            <label for="searchText">Search in notes</label>
+            <label for="searchText">Search notes (optional)</label>
             <input id="searchText" type="text" placeholder="e.g., waiting on data sheet…" />
           </div>
         </div>
@@ -336,7 +314,7 @@
       </div>
 
       <div class="small">
-        Tip: “Export JSON” lets you share the current tracker with your team (send the file, then “Import JSON” on another computer).
+        Nothing displays until you pick <b>both</b> a person and a product. (That’s the whole vibe.)
       </div>
     </section>
 
@@ -389,27 +367,17 @@
       </div>
 
       <div class="small">
-        Notes are appended with timestamps so you can show “weekly updates” without rewriting history.
+        Notes append with timestamps so you’ve always got a weekly history.
       </div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
-
   <input id="importFile" type="file" accept="application/json" style="display:none;" />
 
   <script>
-    /***********************
-     * SIMPLE TRACKER APP
-     * - One file
-     * - localStorage persistence
-     * - export/import JSON
-     ************************/
+    const STORAGE_KEY = "weekly_product_tracker_v2_lookup";
 
-    const STORAGE_KEY = "weekly_product_tracker_v1";
-
-    // Edit these to match your real assignments if you want.
-    // You can also just add products as needed in this list.
     const PEOPLE = ["Adam", "Donta", "Tien"];
     const PRODUCTS = [
       "Sand Topping Mix",
@@ -420,22 +388,12 @@
       "Crack Sealer"
     ];
 
-    // Optional: initial “assigned products” per person.
-    // This helps pre-create the cards you care about.
     const DEFAULT_ASSIGNMENTS = {
       "Adam": ["Sand Topping Mix", "Concrete Mix", "Mortar Mix"],
-      "Donta": ["Fast-Setting Concrete", "Crack Sealer", "Mortar Mix"],
-      "Tien": ["Self-Leveling Floor Resurfacer", "Concrete Mix", "Crack Sealer"]
+      "Donta": ["Fast-Setting Concrete", "Crack Sealer", "Sand Topping Mix"],
+      "Tien": ["Self-Leveling Floor Resurfacer", "Concrete Mix", "Mortar Mix"]
     };
 
-    // State shape:
-    // {
-    //   combos: {
-    //     "Adam||Sand Topping Mix": {
-    //        person, product, status, dueDate, lastUpdatedISO, notes:[{tsISO, text, status, dueDate}]
-    //     }
-    //   }
-    // }
     let state = loadState();
 
     const el = (id) => document.getElementById(id);
@@ -466,11 +424,8 @@
     init();
 
     function init(){
-      // Ensure default combos exist (only if empty state)
       if (!state.combos || Object.keys(state.combos).length === 0){
-        state = {
-          combos: {}
-        };
+        state = { combos: {} };
         for (const person of PEOPLE){
           const list = DEFAULT_ASSIGNMENTS[person] || [];
           for (const product of list){
@@ -480,18 +435,15 @@
         saveState();
       }
 
-      // Populate dropdowns
-      fillSelect(filterPerson, ["All", ...PEOPLE]);
-      fillSelect(filterProduct, ["All", ...uniqueProductsInState()]);
+      fillSelect(filterPerson, ["Select person…", ...PEOPLE]);
+      fillSelect(filterProduct, ["Select product…", ...uniqueProductsInState()]);
 
       fillSelect(personSel, PEOPLE);
       fillSelect(productSel, uniqueProductsInState());
 
-      // Defaults
-      filterPerson.value = "All";
-      filterProduct.value = "All";
+      filterPerson.value = "Select person…";
+      filterProduct.value = "Select product…";
 
-      // Events
       filterPerson.addEventListener("change", render);
       filterProduct.addEventListener("change", render);
       searchText.addEventListener("input", render);
@@ -511,16 +463,15 @@
         if (!ok) return;
         localStorage.removeItem(STORAGE_KEY);
         state = loadState();
-        init(); // reinit fully
+        init();
         toast("Reset complete.");
       });
 
-      // Close modal on backdrop click
       modalBack.addEventListener("click", (e) => {
         if (e.target === modalBack) closeModal();
       });
 
-      render();
+      render(); // shows the hint card until selections are made
     }
 
     function fillSelect(selectEl, items){
@@ -535,7 +486,6 @@
 
     function uniqueProductsInState(){
       const set = new Set(PRODUCTS);
-      // Also include any product already in saved combos
       for (const key of Object.keys(state.combos || {})){
         const combo = state.combos[key];
         if (combo?.product) set.add(combo.product);
@@ -562,70 +512,58 @@
       return state.combos[key];
     }
 
+    // KEY CHANGE: Only render when BOTH are selected.
     function render(){
-      // Keep filter product list synced (in case imported data adds new products)
-      const productsNow = uniqueProductsInState();
-      const currentFilterProduct = filterProduct.value || "All";
-      fillSelect(filterProduct, ["All", ...productsNow]);
-      if ([...filterProduct.options].some(o => o.value === currentFilterProduct)){
-        filterProduct.value = currentFilterProduct;
-      } else {
-        filterProduct.value = "All";
-      }
-      // Modal product select too
-      const currentModalProduct = productSel.value || productsNow[0];
-      fillSelect(productSel, productsNow);
-      if ([...productSel.options].some(o => o.value === currentModalProduct)){
-        productSel.value = currentModalProduct;
-      }
-
       cardsEl.innerHTML = "";
 
-      const personFilter = filterPerson.value;
-      const productFilter = filterProduct.value;
+      const selectedPerson = filterPerson.value;
+      const selectedProduct = filterProduct.value;
+
+      const personChosen = PEOPLE.includes(selectedPerson);
+      const productChosen = uniqueProductsInState().includes(selectedProduct);
+
+      if (!personChosen || !productChosen){
+        cardsEl.appendChild(renderHintCard());
+        return;
+      }
+
+      // Ensure the combo exists so the lookup always works
+      const combo = ensureCombo(selectedPerson, selectedProduct);
+
+      // Optional search within this combo’s notes
       const needle = (searchText.value || "").trim().toLowerCase();
+      if (needle){
+        const hay = [
+          combo.person, combo.product, combo.status, combo.dueDate,
+          ...(combo.notes || []).map(n => n.text)
+        ].join(" ").toLowerCase();
 
-      // Sort: soonest due date first, then most recently updated
-      const combos = Object.values(state.combos || {}).slice().sort((a,b) => {
-        const ad = a.dueDate ? Date.parse(a.dueDate) : Infinity;
-        const bd = b.dueDate ? Date.parse(b.dueDate) : Infinity;
-        if (ad !== bd) return ad - bd;
-
-        const au = a.lastUpdatedISO ? Date.parse(a.lastUpdatedISO) : 0;
-        const bu = b.lastUpdatedISO ? Date.parse(b.lastUpdatedISO) : 0;
-        return bu - au;
-      });
-
-      let shown = 0;
-
-      for (const combo of combos){
-        if (personFilter !== "All" && combo.person !== personFilter) continue;
-        if (productFilter !== "All" && combo.product !== productFilter) continue;
-
-        if (needle){
-          const hay = [
-            combo.person, combo.product, combo.status, combo.dueDate,
-            ...(combo.notes || []).map(n => n.text)
-          ].join(" ").toLowerCase();
-          if (!hay.includes(needle)) continue;
+        if (!hay.includes(needle)){
+          const empty = document.createElement("div");
+          empty.className = "hintCard";
+          empty.innerHTML = `
+            <b>No matches for that search.</b><br/>
+            Try a different keyword, or clear the search box.
+          `;
+          cardsEl.appendChild(empty);
+          return;
         }
-
-        cardsEl.appendChild(renderCard(combo));
-        shown++;
       }
 
-      if (shown === 0){
-        const empty = document.createElement("div");
-        empty.className = "card";
-        empty.style.gridColumn = "span 12";
-        empty.innerHTML = `
-          <div class="title">
-            <b>No matches</b>
-            <span>Try changing filters or clearing search.</span>
-          </div>
-        `;
-        cardsEl.appendChild(empty);
-      }
+      cardsEl.appendChild(renderCard(combo));
+    }
+
+    function renderHintCard(){
+      const div = document.createElement("div");
+      div.className = "hintCard";
+      div.innerHTML = `
+        <b>Pick a person + product to view notes.</b><br/>
+        Example: <span style="color: var(--text);">Donta</span> + <span style="color: var(--text);">Sand Topping Mix</span>.
+        <div style="margin-top:8px;" class="small">
+          Use “Add weekly update” to create the first note for a combo.
+        </div>
+      `;
+      return div;
     }
 
     function renderCard(combo){
@@ -638,9 +576,9 @@
       const due = combo.dueDate ? formatDate(combo.dueDate) : "—";
       const last = combo.lastUpdatedISO ? formatDateTime(combo.lastUpdatedISO) : "—";
 
-      const notes = (combo.notes || []).slice().reverse(); // newest first
+      const notes = (combo.notes || []).slice().reverse();
       const notesHtml = notes.length
-        ? notes.slice(0, 6).map(n => `
+        ? notes.map(n => `
             <div class="note">
               <div class="noteHead">
                 <span>${formatDateTime(n.tsISO)}</span>
@@ -679,9 +617,8 @@
       const [btnAdd, btnDone] = card.querySelectorAll("button");
       btnAdd.addEventListener("click", () => openModal(combo.person, combo.product));
       btnDone.addEventListener("click", () => {
-        ensureCombo(combo.person, combo.product);
-        state.combos[comboKey(combo.person, combo.product)].status = "done";
-        state.combos[comboKey(combo.person, combo.product)].lastUpdatedISO = new Date().toISOString();
+        combo.status = "done";
+        combo.lastUpdatedISO = new Date().toISOString();
         saveState();
         toast(`Marked done: ${combo.person} • ${combo.product}`);
         render();
@@ -690,9 +627,14 @@
       return card;
     }
 
-    function openModal(person = PEOPLE[0], product = uniqueProductsInState()[0]){
-      // Ensure combo exists
-      const combo = ensureCombo(person, product);
+    function openModal(person = null, product = null){
+      const currentPerson = PEOPLE.includes(filterPerson.value) ? filterPerson.value : PEOPLE[0];
+      const currentProduct = uniqueProductsInState().includes(filterProduct.value) ? filterProduct.value : uniqueProductsInState()[0];
+
+      const p = person || currentPerson;
+      const pr = product || currentProduct;
+
+      const combo = ensureCombo(p, pr);
 
       personSel.value = combo.person;
       productSel.value = combo.product;
@@ -737,6 +679,11 @@
 
       saveState();
       toast(`Saved update: ${person} • ${product}`);
+
+      // Helpful: auto-set filters to what you just updated
+      filterPerson.value = person;
+      filterProduct.value = product;
+
       closeModal();
       render();
     }
@@ -750,6 +697,10 @@
       combo.lastUpdatedISO = new Date().toISOString();
       saveState();
       toast(`Marked done: ${person} • ${product}`);
+
+      filterPerson.value = person;
+      filterProduct.value = product;
+
       closeModal();
       render();
     }
@@ -757,8 +708,8 @@
     function exportJSON(){
       const payload = {
         exportedAtISO: new Date().toISOString(),
-        app: "Weekly Product Project Tracker",
-        version: 1,
+        app: "Weekly Product Project Tracker (Lookup Mode)",
+        version: 2,
         data: state
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -783,16 +734,14 @@
       reader.onload = () => {
         try{
           const parsed = JSON.parse(reader.result);
-          const incoming = parsed?.data || parsed; // allow raw state or wrapped export
+          const incoming = parsed?.data || parsed;
           if (!incoming?.combos || typeof incoming.combos !== "object"){
             throw new Error("Invalid file format (missing combos).");
           }
           state = incoming;
           saveState();
           toast("Import complete.");
-          // reset file input so importing same file again works
           importFile.value = "";
-          // refresh selects + cards
           init();
         } catch (e){
           toast("Import failed: " + (e?.message || "Unknown error"));
@@ -840,7 +789,6 @@
     }
 
     function formatDate(isoDate){
-      // isoDate is "YYYY-MM-DD"
       try{
         const [y,m,d] = isoDate.split("-").map(Number);
         const dt = new Date(y, m-1, d);
@@ -883,3 +831,4 @@
   </script>
 </body>
 </html>
+
