@@ -1,295 +1,885 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nordic Drift Translator</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Weekly Product Project Tracker</title>
   <style>
     :root{
-      --bg:#0b132b;
-      --panel:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --border:rgba(15,23,42,.14);
-      --accent:#38bdf8;
-      --shadow:0 18px 45px rgba(0,0,0,.18);
+      --bg: #0b0f17;
+      --panel: #121a28;
+      --panel2: #0f1624;
+      --text: #e9eef7;
+      --muted: #a8b3c7;
+      --line: rgba(255,255,255,0.10);
+      --good: #39d98a;
+      --warn: #ffd166;
+      --bad: #ff5c7a;
+      --info: #5aa9ff;
+      --shadow: 0 10px 25px rgba(0,0,0,0.35);
+      --radius: 16px;
     }
-    *{box-sizing:border-box}
+
+    * { box-sizing: border-box; }
     body{
-      margin:0; padding:28px;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:linear-gradient(180deg,var(--bg),#111827);
-      color:var(--text);
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(90,169,255,0.15), transparent 60%),
+                  radial-gradient(900px 700px at 90% 20%, rgba(57,217,138,0.12), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.4;
     }
-    .wrap{max-width:1020px;margin:0 auto}
-    header{color:#fff;margin-bottom:16px}
-    header h1{margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:.25px}
-    header p{margin:0;color:rgba(255,255,255,.75);font-size:14px;line-height:1.45}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media(min-width:920px){.grid{grid-template-columns:1fr 1fr}}
-    .card{
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:14px;
-      box-shadow:var(--shadow);
+
+    header{
+      padding: 26px 18px 10px;
+      max-width: 1100px;
+      margin: 0 auto;
     }
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    h1{
+      margin:0 0 6px 0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+    }
+    .sub{
+      margin:0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 18px 40px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .toolbar{
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .row{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      justify-content: space-between;
+    }
+
+    .filters{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    select, input[type="date"], input[type="text"], textarea{
+      width: 220px;
+      max-width: 100%;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      outline: none;
+    }
+
     textarea{
-      width:100%; min-height:240px; resize:vertical;
-      padding:12px; border-radius:12px;
-      border:1px solid var(--border);
-      outline:none; font-size:14px; line-height:1.5;
+      width: 520px;
+      min-height: 84px;
+      resize: vertical;
     }
-    textarea:focus{
-      border-color:rgba(56,189,248,.65);
-      box-shadow:0 0 0 3px rgba(56,189,248,.22);
+
+    select option { background: #0d1422; }
+
+    .btns{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
     }
-    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+
     button{
-      appearance:none;
-      border:1px solid var(--border);
-      background:#fff;
-      padding:9px 12px;
-      border-radius:12px;
-      font-weight:700;
-      cursor:pointer;
-      font-size:13px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      font-weight: 600;
+      letter-spacing: 0.2px;
     }
     button:hover{
-      border-color:rgba(56,189,248,.75);
-      box-shadow:0 0 0 3px rgba(56,189,248,.18);
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.18);
     }
+    button:active{ transform: translateY(1px); }
+
+    .primary{
+      background: rgba(90,169,255,0.18);
+      border-color: rgba(90,169,255,0.35);
+    }
+
+    .danger{
+      background: rgba(255,92,122,0.14);
+      border-color: rgba(255,92,122,0.32);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card{
+      grid-column: span 6;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display:grid;
+      gap: 10px;
+    }
+
+    @media (max-width: 900px){
+      .card{ grid-column: span 12; }
+      textarea{ width: 100%; }
+    }
+
+    .cardTop{
+      display:flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title{
+      display:flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .title b{
+      font-size: 15px;
+    }
+    .title span{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
     .pill{
-      display:inline-flex; gap:8px; align-items:center;
-      padding:8px 10px;
-      border:1px solid var(--border);
-      border-radius:999px;
-      background:#fff;
-      font-size:13px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      white-space: nowrap;
     }
-    .pill input{transform:translateY(1px)}
+
+    .pill.good{ border-color: rgba(57,217,138,0.35); background: rgba(57,217,138,0.12); }
+    .pill.warn{ border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.12); }
+    .pill.bad{  border-color: rgba(255,92,122,0.35); background: rgba(255,92,122,0.12); }
+    .pill.info{ border-color: rgba(90,169,255,0.35); background: rgba(90,169,255,0.12); }
+
+    .meta{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding-top: 4px;
+      border-top: 1px solid var(--line);
+      margin-top: 2px;
+    }
+    .meta div{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .meta b{
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .notes{
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      display:grid;
+      gap: 8px;
+    }
+
+    .note{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .noteHead{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .noteText{
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+
     .small{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:10px;
-      line-height:1.45;
+      font-size: 12px;
+      color: var(--muted);
     }
-    code{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:12px;
+
+    .modalBack{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modal{
+      width: min(720px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display:grid;
+      gap: 10px;
+    }
+    .modalTop{
+      display:flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .modalTop b{
+      font-size: 14px;
+    }
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 700px){
+      .twoCol{ grid-template-columns: 1fr; }
+    }
+
+    .toast{
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: rgba(15,22,36,0.95);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+      display:none;
+      z-index: 80;
+      max-width: min(520px, calc(100vw - 32px));
+      font-size: 13px;
+      color: var(--text);
     }
   </style>
 </head>
 
 <body>
+  <header>
+    <h1>Weekly Product Project Tracker</h1>
+    <p class="sub">Pick a person + product, log weekly updates, track status + target completion. Data saves in your browser.</p>
+  </header>
+
   <div class="wrap">
-    <header>
-      <h1>Nordic Drift Translator</h1>
-      <p>Applies a controlled phonetic drift to English text (case-preserving, punctuation-safe).</p>
-    </header>
 
-    <div class="grid">
-      <div class="card">
-        <label for="input">Input</label>
-        <textarea id="input" placeholder="Type here... e.g. Thee art, outside, ride, grace"></textarea>
-
-        <div class="controls">
-          <div class="pill">
-            <input type="checkbox" id="live" checked />
-            <label for="live" style="margin:0;color:inherit;">Live translate</label>
+    <section class="toolbar">
+      <div class="row">
+        <div class="filters">
+          <div>
+            <label for="filterPerson">Filter: Person</label>
+            <select id="filterPerson"></select>
           </div>
-          <button id="copyBtn" type="button">Copy output</button>
-          <button id="clearBtn" type="button">Clear</button>
+
+          <div>
+            <label for="filterProduct">Filter: Product</label>
+            <select id="filterProduct"></select>
+          </div>
+
+          <div>
+            <label for="searchText">Search in notes</label>
+            <input id="searchText" type="text" placeholder="e.g., waiting on data sheet…" />
+          </div>
         </div>
 
-        <div class="small">
-          Rules:
-          <code>Overrides dictionary first</code>,
-          <code>outside→aytsed</code>,
-          <code>W→V</code>,
-          <code>TH→þ</code>,
-          <code>I↔E</code>,
-          <code>A↔O</code>,
-          <code>Y↔U</code>,
-          <code>special: word ends in "de" → drop final e (ride→rid)</code>
-          <br/>
-          Example: <code>Thee art</code> → <code>Thii ort</code>
+        <div class="btns">
+          <button id="btnNewUpdate" class="primary">Add weekly update</button>
+          <button id="btnExport">Export JSON</button>
+          <button id="btnImport">Import JSON</button>
+          <button id="btnReset" class="danger">Reset (local)</button>
         </div>
       </div>
 
-      <div class="card">
-        <label for="output">Output</label>
-        <textarea id="output" readonly placeholder="Output appears here..."></textarea>
+      <div class="small">
+        Tip: “Export JSON” lets you share the current tracker with your team (send the file, then “Import JSON” on another computer).
+      </div>
+    </section>
+
+    <section class="grid" id="cards"></section>
+  </div>
+
+  <!-- Modal -->
+  <div class="modalBack" id="modalBack" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Add weekly update">
+      <div class="modalTop">
+        <b>Add / Update Notes</b>
+        <button id="btnCloseModal">Close</button>
+      </div>
+
+      <div class="twoCol">
+        <div>
+          <label for="personSel">Person</label>
+          <select id="personSel"></select>
+        </div>
+        <div>
+          <label for="productSel">Product</label>
+          <select id="productSel"></select>
+        </div>
+      </div>
+
+      <div class="twoCol">
+        <div>
+          <label for="statusSel">Status</label>
+          <select id="statusSel">
+            <option value="not_started">Not started</option>
+            <option value="in_progress">In progress</option>
+            <option value="blocked">Blocked</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div>
+          <label for="dueDate">Target completion date</label>
+          <input id="dueDate" type="date" />
+        </div>
+      </div>
+
+      <div>
+        <label for="noteText">Weekly update note</label>
+        <textarea id="noteText" placeholder="What changed this week? What’s next? Any blockers?"></textarea>
+      </div>
+
+      <div class="btns">
+        <button id="btnMarkDone">Mark as Done</button>
+        <button id="btnSaveUpdate" class="primary">Save update</button>
+      </div>
+
+      <div class="small">
+        Notes are appended with timestamps so you can show “weekly updates” without rewriting history.
       </div>
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
+  <input id="importFile" type="file" accept="application/json" style="display:none;" />
+
   <script>
-    const inputEl  = document.getElementById("input");
-    const outputEl = document.getElementById("output");
-    const liveEl   = document.getElementById("live");
-    const copyBtn  = document.getElementById("copyBtn");
-    const clearBtn = document.getElementById("clearBtn");
+    /***********************
+     * SIMPLE TRACKER APP
+     * - One file
+     * - localStorage persistence
+     * - export/import JSON
+     ************************/
 
-    // ============================================================
-    // CUSTOM OVERRIDES (EDIT THIS)
-    // Keys must be lowercase.
-    // If a key matches, it RETURNS IMMEDIATELY and ignores all other rules.
-    // ============================================================
-    const OVERRIDES = {
-      // "grace": "groce",
-      // "lord": "lard",
-      // "house": "hays",
-      "the": "þe",   // example: the -> þe (and The -> Þe, THE -> ÞE)
-      "house": "hays",
-      "up": "op"
+    const STORAGE_KEY = "weekly_product_tracker_v1";
+
+    // Edit these to match your real assignments if you want.
+    // You can also just add products as needed in this list.
+    const PEOPLE = ["Adam", "Donta", "Tien"];
+    const PRODUCTS = [
+      "Sand Topping Mix",
+      "Concrete Mix",
+      "Mortar Mix",
+      "Fast-Setting Concrete",
+      "Self-Leveling Floor Resurfacer",
+      "Crack Sealer"
+    ];
+
+    // Optional: initial “assigned products” per person.
+    // This helps pre-create the cards you care about.
+    const DEFAULT_ASSIGNMENTS = {
+      "Adam": ["Sand Topping Mix", "Concrete Mix", "Mortar Mix"],
+      "Donta": ["Fast-Setting Concrete", "Crack Sealer", "Mortar Mix"],
+      "Tien": ["Self-Leveling Floor Resurfacer", "Concrete Mix", "Crack Sealer"]
     };
 
-    // vowel swaps
-    const VOWEL_SWAP = {
-      a:"o", o:"a",
-      i:"e", e:"i",
-      y:"u", u:"y"
-    };
+    // State shape:
+    // {
+    //   combos: {
+    //     "Adam||Sand Topping Mix": {
+    //        person, product, status, dueDate, lastUpdatedISO, notes:[{tsISO, text, status, dueDate}]
+    //     }
+    //   }
+    // }
+    let state = loadState();
 
-    function splitPreserveWhitespace(text){
-      return text.match(/\s+|[^\s]+/g) || [];
-    }
+    const el = (id) => document.getElementById(id);
 
-    function splitToken(token){
-      const m = token.match(/^([^A-Za-z]*)([A-Za-z]+(?:'[A-Za-z]+)*)?([^A-Za-z]*)$/);
-      if (!m || !m[2]) return null;
-      return { lead: m[1], word: m[2], trail: m[3] };
-    }
+    const filterPerson = el("filterPerson");
+    const filterProduct = el("filterProduct");
+    const searchText = el("searchText");
+    const cardsEl = el("cards");
 
-    // Applies the CASE STYLE of the original word to the mapped word:
-    // - ALL CAPS stays ALL CAPS
-    // - Title Case stays Title Case
-    // - Otherwise: leave mappedWord as-is (DON'T force lowercase)
-    function applyCaseStyle(originalWord, mappedWord){
-      const isAllCaps = originalWord === originalWord.toUpperCase();
-      const isTitleCase =
-        originalWord[0] === originalWord[0].toUpperCase() &&
-        originalWord.slice(1) === originalWord.slice(1).toLowerCase();
+    const modalBack = el("modalBack");
+    const btnNewUpdate = el("btnNewUpdate");
+    const btnCloseModal = el("btnCloseModal");
+    const btnSaveUpdate = el("btnSaveUpdate");
+    const btnMarkDone = el("btnMarkDone");
+    const btnExport = el("btnExport");
+    const btnImport = el("btnImport");
+    const btnReset = el("btnReset");
 
-      if (isAllCaps) return mappedWord.toUpperCase();
-      if (isTitleCase) return mappedWord[0].toUpperCase() + mappedWord.slice(1);
-      return mappedWord; // <-- key change: don't auto-lowercase overrides
-    }
+    const personSel = el("personSel");
+    const productSel = el("productSel");
+    const statusSel = el("statusSel");
+    const dueDateEl = el("dueDate");
+    const noteTextEl = el("noteText");
 
-    function preserveCharCase(originalChar, mappedChar){
-      return (originalChar === originalChar.toUpperCase())
-        ? mappedChar.toUpperCase()
-        : mappedChar;
-    }
+    const importFile = el("importFile");
+    const toastEl = el("toast");
 
-    // Special rule: if word ends with ...de (case-insensitive), drop the final e.
-    // Do this BEFORE vowel swaps so ride -> rid (not ridi).
-    function dropFinalEAfterDOrG(word){
-      if (word.length < 2) return word;
-      const last = word[word.length - 1];
-      const prev = word[word.length - 2];
-      const isE = (last === "e" || last === "E");
-      const isD = (prev === "d" || prev === "D" || prev === "g" || prev === "G");
-      if (isD && isE) return word.slice(0, -1);
-      return word;
-    }
+    init();
 
-    // TH -> þ (case-aware on first letter)
-    function thToThorn(word){
-      return word.replace(/th/gi, (match) => {
-        const first = match[0];
-        return (first === first.toUpperCase()) ? "Þ" : "þ";
+    function init(){
+      // Ensure default combos exist (only if empty state)
+      if (!state.combos || Object.keys(state.combos).length === 0){
+        state = {
+          combos: {}
+        };
+        for (const person of PEOPLE){
+          const list = DEFAULT_ASSIGNMENTS[person] || [];
+          for (const product of list){
+            ensureCombo(person, product);
+          }
+        }
+        saveState();
+      }
+
+      // Populate dropdowns
+      fillSelect(filterPerson, ["All", ...PEOPLE]);
+      fillSelect(filterProduct, ["All", ...uniqueProductsInState()]);
+
+      fillSelect(personSel, PEOPLE);
+      fillSelect(productSel, uniqueProductsInState());
+
+      // Defaults
+      filterPerson.value = "All";
+      filterProduct.value = "All";
+
+      // Events
+      filterPerson.addEventListener("change", render);
+      filterProduct.addEventListener("change", render);
+      searchText.addEventListener("input", render);
+
+      btnNewUpdate.addEventListener("click", () => openModal());
+      btnCloseModal.addEventListener("click", closeModal);
+
+      btnSaveUpdate.addEventListener("click", saveUpdateFromModal);
+      btnMarkDone.addEventListener("click", markDoneFromModal);
+
+      btnExport.addEventListener("click", exportJSON);
+      btnImport.addEventListener("click", () => importFile.click());
+      importFile.addEventListener("change", importJSON);
+
+      btnReset.addEventListener("click", () => {
+        const ok = confirm("Reset local tracker data on this computer? (Cannot undo)");
+        if (!ok) return;
+        localStorage.removeItem(STORAGE_KEY);
+        state = loadState();
+        init(); // reinit fully
+        toast("Reset complete.");
       });
+
+      // Close modal on backdrop click
+      modalBack.addEventListener("click", (e) => {
+        if (e.target === modalBack) closeModal();
+      });
+
+      render();
     }
 
-    function driftWord(word){
-      const lw = word.toLowerCase();
+    function fillSelect(selectEl, items){
+      selectEl.innerHTML = "";
+      for (const item of items){
+        const opt = document.createElement("option");
+        opt.value = item;
+        opt.textContent = item;
+        selectEl.appendChild(opt);
+      }
+    }
 
-      // 1) OVERRIDES FIRST (hard short-circuit)
-      if (Object.prototype.hasOwnProperty.call(OVERRIDES, lw)){
-        return applyCaseStyle(word, OVERRIDES[lw]);
+    function uniqueProductsInState(){
+      const set = new Set(PRODUCTS);
+      // Also include any product already in saved combos
+      for (const key of Object.keys(state.combos || {})){
+        const combo = state.combos[key];
+        if (combo?.product) set.add(combo.product);
+      }
+      return Array.from(set).sort((a,b) => a.localeCompare(b));
+    }
+
+    function comboKey(person, product){
+      return `${person}||${product}`;
+    }
+
+    function ensureCombo(person, product){
+      const key = comboKey(person, product);
+      if (!state.combos[key]){
+        state.combos[key] = {
+          person,
+          product,
+          status: "not_started",
+          dueDate: "",
+          lastUpdatedISO: "",
+          notes: []
+        };
+      }
+      return state.combos[key];
+    }
+
+    function render(){
+      // Keep filter product list synced (in case imported data adds new products)
+      const productsNow = uniqueProductsInState();
+      const currentFilterProduct = filterProduct.value || "All";
+      fillSelect(filterProduct, ["All", ...productsNow]);
+      if ([...filterProduct.options].some(o => o.value === currentFilterProduct)){
+        filterProduct.value = currentFilterProduct;
+      } else {
+        filterProduct.value = "All";
+      }
+      // Modal product select too
+      const currentModalProduct = productSel.value || productsNow[0];
+      fillSelect(productSel, productsNow);
+      if ([...productSel.options].some(o => o.value === currentModalProduct)){
+        productSel.value = currentModalProduct;
       }
 
-      // 2) hard override
-      if (lw === "outside"){
-        return applyCaseStyle(word, "aytsed");
-      }
+      cardsEl.innerHTML = "";
 
-      // 3) special: ...de -> ...d
-      let w = dropFinalEAfterDOrG(word);
+      const personFilter = filterPerson.value;
+      const productFilter = filterProduct.value;
+      const needle = (searchText.value || "").trim().toLowerCase();
 
-      // 4) TH -> þ
-      w = thToThorn(w);
+      // Sort: soonest due date first, then most recently updated
+      const combos = Object.values(state.combos || {}).slice().sort((a,b) => {
+        const ad = a.dueDate ? Date.parse(a.dueDate) : Infinity;
+        const bd = b.dueDate ? Date.parse(b.dueDate) : Infinity;
+        if (ad !== bd) return ad - bd;
 
-      // 5) char-level mapping: W->ƿ and vowel swaps
-      let out = "";
-      for (const ch of w){
-        const low = ch.toLowerCase();
+        const au = a.lastUpdatedISO ? Date.parse(a.lastUpdatedISO) : 0;
+        const bu = b.lastUpdatedISO ? Date.parse(b.lastUpdatedISO) : 0;
+        return bu - au;
+      });
 
-        // W -> ƿ 
-        if (low === "w"){
-          out += preserveCharCase(ch, "ƿ");
-          continue;
+      let shown = 0;
+
+      for (const combo of combos){
+        if (personFilter !== "All" && combo.person !== personFilter) continue;
+        if (productFilter !== "All" && combo.product !== productFilter) continue;
+
+        if (needle){
+          const hay = [
+            combo.person, combo.product, combo.status, combo.dueDate,
+            ...(combo.notes || []).map(n => n.text)
+          ].join(" ").toLowerCase();
+          if (!hay.includes(needle)) continue;
         }
 
-        // vowel swaps
-        if (VOWEL_SWAP[low]){
-          out += preserveCharCase(ch, VOWEL_SWAP[low]);
-          continue;
-        }
-
-        out += ch;
+        cardsEl.appendChild(renderCard(combo));
+        shown++;
       }
 
-      return out;
+      if (shown === 0){
+        const empty = document.createElement("div");
+        empty.className = "card";
+        empty.style.gridColumn = "span 12";
+        empty.innerHTML = `
+          <div class="title">
+            <b>No matches</b>
+            <span>Try changing filters or clearing search.</span>
+          </div>
+        `;
+        cardsEl.appendChild(empty);
+      }
     }
 
-    function translateText(text){
-      const tokens = splitPreserveWhitespace(text);
+    function renderCard(combo){
+      const card = document.createElement("div");
+      card.className = "card";
 
-      return tokens.map(tok => {
-        if (/^\s+$/.test(tok)) return tok;
+      const pillClass = statusPillClass(combo.status);
+      const pillLabel = statusLabel(combo.status);
 
-        const parts = splitToken(tok);
-        if (!parts) return tok;
+      const due = combo.dueDate ? formatDate(combo.dueDate) : "—";
+      const last = combo.lastUpdatedISO ? formatDateTime(combo.lastUpdatedISO) : "—";
 
-        const { lead, word, trail } = parts;
-        return lead + driftWord(word) + trail;
-      }).join("");
+      const notes = (combo.notes || []).slice().reverse(); // newest first
+      const notesHtml = notes.length
+        ? notes.slice(0, 6).map(n => `
+            <div class="note">
+              <div class="noteHead">
+                <span>${formatDateTime(n.tsISO)}</span>
+                <span>${statusLabel(n.status)}${n.dueDate ? " • due " + formatDate(n.dueDate) : ""}</span>
+              </div>
+              <div class="noteText">${escapeHtml(n.text)}</div>
+            </div>
+          `).join("")
+        : `<div class="small">No notes yet. Add the first weekly update.</div>`;
+
+      card.innerHTML = `
+        <div class="cardTop">
+          <div class="title">
+            <b>${escapeHtml(combo.product)}</b>
+            <span>${escapeHtml(combo.person)}</span>
+          </div>
+          <span class="pill ${pillClass}">${pillLabel}</span>
+        </div>
+
+        <div class="meta">
+          <div>Target: <b>${escapeHtml(due)}</b></div>
+          <div>Last update: <b>${escapeHtml(last)}</b></div>
+          <div>Updates: <b>${(combo.notes || []).length}</b></div>
+        </div>
+
+        <div class="notes">
+          ${notesHtml}
+        </div>
+
+        <div class="btns">
+          <button class="primary">Add update</button>
+          <button>Quick: Mark done</button>
+        </div>
+      `;
+
+      const [btnAdd, btnDone] = card.querySelectorAll("button");
+      btnAdd.addEventListener("click", () => openModal(combo.person, combo.product));
+      btnDone.addEventListener("click", () => {
+        ensureCombo(combo.person, combo.product);
+        state.combos[comboKey(combo.person, combo.product)].status = "done";
+        state.combos[comboKey(combo.person, combo.product)].lastUpdatedISO = new Date().toISOString();
+        saveState();
+        toast(`Marked done: ${combo.person} • ${combo.product}`);
+        render();
+      });
+
+      return card;
     }
 
-    function update(){
-      outputEl.value = translateText(inputEl.value);
+    function openModal(person = PEOPLE[0], product = uniqueProductsInState()[0]){
+      // Ensure combo exists
+      const combo = ensureCombo(person, product);
+
+      personSel.value = combo.person;
+      productSel.value = combo.product;
+      statusSel.value = combo.status || "not_started";
+      dueDateEl.value = combo.dueDate || "";
+      noteTextEl.value = "";
+
+      modalBack.style.display = "flex";
+      modalBack.setAttribute("aria-hidden", "false");
+      noteTextEl.focus();
     }
 
-    inputEl.addEventListener("input", () => {
-      if (liveEl.checked) update();
-    });
+    function closeModal(){
+      modalBack.style.display = "none";
+      modalBack.setAttribute("aria-hidden", "true");
+    }
 
-    liveEl.addEventListener("change", () => {
-      if (liveEl.checked) update();
-    });
+    function saveUpdateFromModal(){
+      const person = personSel.value;
+      const product = productSel.value;
 
-    copyBtn.addEventListener("click", async () => {
+      const combo = ensureCombo(person, product);
+      const status = statusSel.value;
+      const dueDate = dueDateEl.value;
+      const text = (noteTextEl.value || "").trim();
+
+      if (!text){
+        toast("Write a note first (even a short one).");
+        return;
+      }
+
+      combo.status = status;
+      combo.dueDate = dueDate;
+      combo.lastUpdatedISO = new Date().toISOString();
+      combo.notes = combo.notes || [];
+      combo.notes.push({
+        tsISO: combo.lastUpdatedISO,
+        text,
+        status,
+        dueDate
+      });
+
+      saveState();
+      toast(`Saved update: ${person} • ${product}`);
+      closeModal();
+      render();
+    }
+
+    function markDoneFromModal(){
+      statusSel.value = "done";
+      const person = personSel.value;
+      const product = productSel.value;
+      const combo = ensureCombo(person, product);
+      combo.status = "done";
+      combo.lastUpdatedISO = new Date().toISOString();
+      saveState();
+      toast(`Marked done: ${person} • ${product}`);
+      closeModal();
+      render();
+    }
+
+    function exportJSON(){
+      const payload = {
+        exportedAtISO: new Date().toISOString(),
+        app: "Weekly Product Project Tracker",
+        version: 1,
+        data: state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `project-tracker-export-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast("Exported JSON.");
+    }
+
+    function importJSON(){
+      const file = importFile.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const parsed = JSON.parse(reader.result);
+          const incoming = parsed?.data || parsed; // allow raw state or wrapped export
+          if (!incoming?.combos || typeof incoming.combos !== "object"){
+            throw new Error("Invalid file format (missing combos).");
+          }
+          state = incoming;
+          saveState();
+          toast("Import complete.");
+          // reset file input so importing same file again works
+          importFile.value = "";
+          // refresh selects + cards
+          init();
+        } catch (e){
+          toast("Import failed: " + (e?.message || "Unknown error"));
+          importFile.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function loadState(){
       try{
-        await navigator.clipboard.writeText(outputEl.value);
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => copyBtn.textContent = "Copy output", 900);
-      } catch (e){
-        alert("Copy failed (clipboard permission). You can manually select + copy.");
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { combos: {} };
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return { combos: {} };
+        if (!parsed.combos) parsed.combos = {};
+        return parsed;
+      } catch {
+        return { combos: {} };
       }
-    });
+    }
 
-    clearBtn.addEventListener("click", () => {
-      inputEl.value = "";
-      outputEl.value = "";
-      inputEl.focus();
-    });
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
 
-    update();
+    function statusLabel(s){
+      switch (s){
+        case "not_started": return "Not started";
+        case "in_progress": return "In progress";
+        case "blocked": return "Blocked";
+        case "done": return "Done";
+        default: return "Unknown";
+      }
+    }
+
+    function statusPillClass(s){
+      switch (s){
+        case "done": return "good";
+        case "in_progress": return "info";
+        case "blocked": return "bad";
+        case "not_started": return "warn";
+        default: return "info";
+      }
+    }
+
+    function formatDate(isoDate){
+      // isoDate is "YYYY-MM-DD"
+      try{
+        const [y,m,d] = isoDate.split("-").map(Number);
+        const dt = new Date(y, m-1, d);
+        return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+      } catch {
+        return isoDate;
+      }
+    }
+
+    function formatDateTime(iso){
+      try{
+        const dt = new Date(iso);
+        return dt.toLocaleString(undefined, {
+          year:"numeric", month:"short", day:"2-digit",
+          hour:"2-digit", minute:"2-digit"
+        });
+      } catch {
+        return iso;
+      }
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    let toastTimer = null;
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.style.display = "block";
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toastEl.style.display = "none";
+      }, 2200);
+    }
   </script>
 </body>
 </html>
